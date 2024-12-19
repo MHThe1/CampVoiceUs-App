@@ -1,5 +1,6 @@
 package com.work.campvoiceus.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.work.campvoiceus.models.CreateThreadRequest
@@ -30,24 +31,28 @@ class HomeViewModel(private val tokenManager: TokenManager) : ViewModel() {
         viewModelScope.launch {
             try {
                 val token = tokenManager.getToken()
+                Log.d("AuthorizationHeader", "Bearer $token")
                 val response = threadService.getThreads("Bearer $token")
+                Log.d("HomeViewModel", "Response: $response")
                 if (response.isSuccessful) {
-                    val apiResponse = response.body()
-                    if (apiResponse != null && apiResponse.success) {
-                        _threads.value = apiResponse.data
+                    val threadsList = response.body()
+                    if (threadsList != null) {
+                        _threads.value = threadsList
                     } else {
-                        _errorMessage.value = "Failed to load threads. Try again later."
+                        _errorMessage.value = "Failed to load threads. Empty response."
                     }
                 } else {
-                    _errorMessage.value = "Error: ${response.code()}"
+                    _errorMessage.value = "Error: ${response.code()} - ${response.message()}"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Network error. Please check your connection."
+                _errorMessage.value = "Network error: ${e.localizedMessage}"
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
+
 
 
     fun createThread(title: String, content: String) {

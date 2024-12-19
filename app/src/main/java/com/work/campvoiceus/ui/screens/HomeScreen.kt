@@ -126,20 +126,11 @@ fun ThreadCard(thread: ThreadModel) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "${thread.commentsCount} Comments",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Text(
-                    text = "${thread.upvotes} Upvotes",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
+            Text(
+                text = "${thread.comments.size} Comments",
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }
+
