@@ -6,6 +6,7 @@ import com.work.campvoiceus.models.LoginRequest
 import com.work.campvoiceus.models.LoginResponse
 import com.work.campvoiceus.models.RegisterRequest
 import com.work.campvoiceus.models.RegisterResponse
+import com.work.campvoiceus.models.User
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -24,6 +25,11 @@ interface UserService {
     suspend fun register(
         @Body request: RegisterRequest
     ): Response<RegisterResponse>
+
+    @GET("users/token")
+    suspend fun getUserProfile(
+        @Header("Authorization") token: String
+    ): Response<User>
 
     @GET("users/{username}")
     suspend fun getUserByUsername(

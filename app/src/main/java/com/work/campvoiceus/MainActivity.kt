@@ -33,22 +33,15 @@ fun MainApp() {
     val tokenManager = TokenManager(navController.context)
     val savedToken = tokenManager.getToken()
 
-    // logging
-    Log.d("TokenManager", "Saved Token: $savedToken")
-
     val startDestination = if (savedToken.isNullOrEmpty()) "login" else "home"
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        AppNavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding),
-            tokenManager = tokenManager // Pass the TokenManager to AppNavHost
-        )
-    }
+    AppNavHost(
+        navController = navController,
+        startDestination = startDestination,
+        tokenManager = tokenManager
+    )
 }
+
 
 
 @Preview(showBackground = true)
