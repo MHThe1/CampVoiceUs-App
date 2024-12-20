@@ -1,5 +1,7 @@
 package com.work.campvoiceus.ui.screens
 
+import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -27,15 +30,25 @@ fun EditProfileScreen(
     val isLoading by viewModel.loading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    var avatarUri by remember { mutableStateOf<String?>(null) }
+    val contentResolver = LocalContext.current.contentResolver // Get contentResolver in a composable context
 
-    // File picker launcher (currently not used for updating the profile)
+    var avatarUri by remember { mutableStateOf<Uri?>(null) }
+
+    // File picker launcher
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = GetContent()
-    ) { uri ->
-        avatarUri = uri?.toString()
+    ) { uri: Uri? ->
+        avatarUri = uri
     }
 
+    // Fetch the profile data on screen load
+    LaunchedEffect(Unit) {
+        viewModel.fetchProfile()
+    }
+
+    Log.d("EditProfileScreen", "ProfileData: $profileData")
+
+    // Show loading spinner if data is being fetched
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -43,6 +56,7 @@ fun EditProfileScreen(
         return
     }
 
+    // Show error message if any error occurs
     if (errorMessage != null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
@@ -67,6 +81,7 @@ fun EditProfileScreen(
                     .crossfade(true)
                     .build(),
                 contentDescription = "Avatar",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(CircleShape)
@@ -83,7 +98,7 @@ fun EditProfileScreen(
 
         // Name Input
         OutlinedTextField(
-            value = profileData.name,
+            value = profileData.name ?: "", // Use the fetched name
             onValueChange = { viewModel.updateName(it) },
             label = { Text("Name") },
             modifier = Modifier.fillMaxWidth()
@@ -93,7 +108,7 @@ fun EditProfileScreen(
 
         // Bio Input
         OutlinedTextField(
-            value = profileData.bio,
+            value = profileData.bio ?: "", // Use the fetched bio
             onValueChange = { viewModel.updateBio(it) },
             label = { Text("Bio") },
             modifier = Modifier.fillMaxWidth()
@@ -105,7 +120,9 @@ fun EditProfileScreen(
         Button(
             onClick = {
                 viewModel.updateProfile(
-                    updatedData = profileData
+                    updatedData = profileData,
+                    avatarUri = avatarUri,
+                    contentResolver = contentResolver
                 )
                 onProfileUpdated()
             },

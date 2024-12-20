@@ -16,6 +16,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.PartMap
 import retrofit2.http.Path
 
 interface UserService {
@@ -35,10 +36,13 @@ interface UserService {
     ): Response<User>
 
     @PUT("users/profile/edit")
+    @Multipart
     suspend fun updateUserProfile(
         @Header("Authorization") token: String,
-        @Body profileData: Map<String, String>
+        @PartMap profileData: Map<String, @JvmSuppressWildcards okhttp3.RequestBody>,
+        @Part avatar: MultipartBody.Part? // Optional avatar file
     ): Response<Unit>
+
 
 
     @GET("users/{username}")
