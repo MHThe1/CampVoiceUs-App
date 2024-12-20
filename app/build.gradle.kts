@@ -80,6 +80,8 @@ dependencies {
     // testing
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

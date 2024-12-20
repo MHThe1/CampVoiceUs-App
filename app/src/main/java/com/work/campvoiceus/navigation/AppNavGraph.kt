@@ -10,12 +10,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.work.campvoiceus.ui.components.BottomNavigationBar
+import com.work.campvoiceus.ui.screens.EditProfileScreen
 import com.work.campvoiceus.ui.screens.HomeScreen
 import com.work.campvoiceus.ui.screens.LoginScreen
 import com.work.campvoiceus.ui.screens.ProfileScreen
 import com.work.campvoiceus.ui.screens.RegisterScreen
 import com.work.campvoiceus.utils.TokenManager
 import com.work.campvoiceus.viewmodels.HomeViewModel
+import com.work.campvoiceus.viewmodels.ProfileEditViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 
 @Composable
@@ -96,6 +98,21 @@ fun AppNavHost(
                     }
                 )
             }
+
+            // Edit Profile Screen
+            composable("editProfile") {
+                // Replace `ProfileEditViewModel` with the appropriate ViewModel for the Edit Profile Screen
+                val viewModel = ProfileEditViewModel(tokenManager)
+                EditProfileScreen(
+                    viewModel = viewModel,
+                    onProfileUpdated = {
+                        navController.navigate("profile") {
+                            popUpTo("editProfile") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
         }
     }
 }

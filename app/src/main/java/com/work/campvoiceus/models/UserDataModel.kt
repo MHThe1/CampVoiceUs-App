@@ -22,6 +22,12 @@ data class User(
     val bio: String? = null
 )
 
+data class EditProfileData(
+    var name: String = "",
+    var bio: String = "",
+    var avatarUrl: String? = null // File paths or URLs
+)
+
 
 data class UserResponse(val name: String, val avatarUrl: String?, val username: String, val email: String)
 

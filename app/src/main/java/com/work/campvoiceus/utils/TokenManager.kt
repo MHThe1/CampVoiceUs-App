@@ -1,35 +1,20 @@
 package com.work.campvoiceus.utils
 
 import android.content.Context
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import android.content.SharedPreferences
 
-class TokenManager(context: Context) {
-    private val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
-
-    private val sharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        "auth_prefs",
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
-
-    companion object {
-        private const val TOKEN_KEY = "jwt_token"
-    }
+class TokenManager(private val context: Context) {
+    private val preferences: SharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
     fun saveToken(token: String) {
-        sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
+        preferences.edit().putString("token", token).apply()
     }
 
     fun getToken(): String? {
-        return sharedPreferences.getString(TOKEN_KEY, null)
+        return preferences.getString("token", null)
     }
 
     fun clearToken() {
-        sharedPreferences.edit().remove(TOKEN_KEY).apply()
+        preferences.edit().remove("token").apply()
     }
 }
