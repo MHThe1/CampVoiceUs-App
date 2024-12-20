@@ -13,7 +13,8 @@ import com.work.campvoiceus.viewmodels.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String) -> Unit // Callback for successful login
+    onLoginSuccess: (String) -> Unit, // Callback for successful login
+    onNavigateToRegister: () -> Unit // Callback for navigating to the registration page
 ) {
     val viewModel: LoginViewModel = viewModel() // ViewModel for handling login logic
     val loginState by viewModel.loginState.collectAsState() // Observe login state
@@ -75,6 +76,16 @@ fun LoginScreen(
             else -> {
                 // Do nothing if state is Idle
             }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Link to navigate to registration
+        TextButton(
+            onClick = onNavigateToRegister,
+            modifier = Modifier.align(CenterHorizontally)
+        ) {
+            Text("Don't have an account? Register here")
         }
     }
 }

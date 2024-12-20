@@ -4,6 +4,8 @@ package com.work.campvoiceus.network
 import com.work.campvoiceus.models.ApiResponse
 import com.work.campvoiceus.models.LoginRequest
 import com.work.campvoiceus.models.LoginResponse
+import com.work.campvoiceus.models.RegisterRequest
+import com.work.campvoiceus.models.RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -19,7 +21,9 @@ interface UserService {
     ): Response<LoginResponse>
 
     @POST("users/register")
-    suspend fun registerUser(@Body registerRequest: Map<String, String>): LoginResponse
+    suspend fun register(
+        @Body request: RegisterRequest
+    ): Response<RegisterResponse>
 
     @GET("users/{username}")
     suspend fun getUserByUsername(
