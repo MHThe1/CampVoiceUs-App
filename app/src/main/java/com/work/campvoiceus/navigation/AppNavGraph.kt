@@ -1,22 +1,16 @@
 package com.work.campvoiceus.navigation
 
-import android.util.Log
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.work.campvoiceus.ui.components.BottomNavigationBar
+import com.work.campvoiceus.ui.components.TopBar
 import com.work.campvoiceus.ui.screens.AuthorProfileScreen
 import com.work.campvoiceus.ui.screens.CreateThreadScreen
 import com.work.campvoiceus.ui.screens.EditProfileScreen
@@ -40,6 +34,27 @@ fun AppNavHost(
     tokenManager: TokenManager
 ) {
     Scaffold(
+        topBar = {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+
+            // Exclude TopBar for login and register screens
+            if (currentRoute != "login" && currentRoute != "register") {
+                TopBar(
+                    onNavigateToHome = {
+                        navController.navigate("home") {
+                            popUpTo("home") { saveState = true }
+                        }
+                    },
+                    onLogout = {
+                        tokenManager.clearToken()
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    }
+                )
+            }
+        },
         bottomBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
@@ -89,15 +104,9 @@ fun AppNavHost(
                 val viewModel = ThreadsViewModel(tokenManager)
                 HomeScreen(
                     viewModel = viewModel,
-                    onLogout = {
-                        tokenManager.clearToken()
-                        navController.navigate("login") {
-                            popUpTo("home") { inclusive = true }
-                        }
-                    },
                     navigateToProfile = { authorId ->
                         navController.navigate("authorProfile/$authorId") {
-                            popUpTo("home") { saveState = true } // Ensure only one "home" is in the stack.
+                            popUpTo("home") { saveState = true }
                         }
                     }
                 )
@@ -150,12 +159,12 @@ fun AppNavHost(
 
                 AuthorProfileScreen(
                     viewModel = viewModel,
+                    threadsViewModel = authorThreadsViewModel,
                     navigateToProfile = { authorId ->
                         navController.navigate("authorProfile/$authorId") {
                             popUpTo("authorProfile/{userId}") { saveState = true }
                         }
-                    },
-                    threadsViewModel = authorThreadsViewModel
+                    }
                 )
             }
         }

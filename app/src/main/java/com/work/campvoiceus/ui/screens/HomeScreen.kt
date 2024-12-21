@@ -1,27 +1,23 @@
 package com.work.campvoiceus.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 
 @Composable
 fun HomeScreen(
     viewModel: ThreadsViewModel,
-    onLogout: () -> Unit,
-    navigateToProfile: (String) -> Unit // Add this parameter for navigation
+    navigateToProfile: (String) -> Unit
 ) {
     val threads by viewModel.threads.collectAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
@@ -33,26 +29,6 @@ fun HomeScreen(
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "campvoiceus",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-
-            Button(
-                onClick = { onLogout() },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text("Logout")
-            }
-        }
-
         Spacer(modifier = Modifier.height(8.dp))
 
         when {
@@ -93,19 +69,16 @@ fun HomeScreen(
                     items(threads) { thread ->
                         ThreadCard(
                             thread = thread,
-                            currentUserId = currentUserId ?: "", // Pass the ID of the current user
+                            currentUserId = currentUserId ?: "",
                             onVote = { threadId, voteType ->
-                                viewModel.handleVote(threadId, voteType) // ViewModel function for voting
+                                viewModel.handleVote(threadId, voteType)
                             },
                             onCommentClick = { threadId ->
-                                viewModel.openComments(threadId) // ViewModel function for opening comments
+                                viewModel.openComments(threadId)
                             },
                             navigateToProfile = { authorId ->
-                                Log.d("HomeScreen", "Navigating to profile with authorId: $authorId")
-                                if (authorId.isNotEmpty()){
-                                    navigateToProfile(authorId) // Pass the navigation lambda
-                                } else {
-                                    Log.e("HomeScreen", "Invalid authorId: Navigation aborted")
+                                if (authorId.isNotEmpty()) {
+                                    navigateToProfile(authorId)
                                 }
                             }
                         )
@@ -114,7 +87,5 @@ fun HomeScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
