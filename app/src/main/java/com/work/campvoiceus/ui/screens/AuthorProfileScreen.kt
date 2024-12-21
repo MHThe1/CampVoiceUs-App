@@ -1,15 +1,10 @@
 package com.work.campvoiceus.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,22 +12,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
-import com.work.campvoiceus.ui.components.ThreadCard
-import com.work.campvoiceus.viewmodels.ThreadsViewModel
-import com.work.campvoiceus.viewmodels.ProfileViewModel
+import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
 
 @Composable
-fun ProfileScreen(
-    viewModel: ProfileViewModel,
-    threadsViewModel: ThreadsViewModel,
-    onEditProfile: () -> Unit,
-    navigateToProfile: (String) -> Unit // Add this parameter
+fun AuthorProfileScreen(
+    viewModel: AuthorProfileViewModel,
+    navigateToProfile: (String) -> Unit
 ) {
     val user by viewModel.user.collectAsState()
-    val threads by threadsViewModel.userThreads.collectAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val currentUserId by threadsViewModel.currentUserId.collectAsState()
 
     if (isLoading) {
         Box(
@@ -109,47 +98,5 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = onEditProfile,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Edit Profile")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        when {
-            threads.isEmpty() -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "No threads available.")
-                }
-            }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(threads) { thread ->
-                        ThreadCard(
-                            thread = thread,
-                            currentUserId = currentUserId ?: "", // Pass the ID of the current user
-                            onVote = { threadId, voteType ->
-                                threadsViewModel.handleVote(threadId, voteType) // ViewModel function for voting
-                            },
-                            onCommentClick = { threadId ->
-                                threadsViewModel.openComments(threadId) // ViewModel function for opening comments
-                            },
-                            navigateToProfile = { authorId ->
-                                navigateToProfile(authorId) // Navigate to the author profile
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-            }
-        }
     }
 }
-

@@ -1,5 +1,6 @@
 package com.work.campvoiceus.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -22,8 +23,9 @@ import java.util.*
 fun ThreadCard(
     thread: ThreadModel,
     currentUserId: String,
-    onVote: (String, String) -> Unit, // threadId and voteType ("upvote" or "downvote")
-    onCommentClick: (String) -> Unit // threadId
+    onVote: (String, String) -> Unit,
+    onCommentClick: (String) -> Unit,
+    navigateToProfile: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -32,17 +34,16 @@ fun ThreadCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(
-            modifier = Modifier.padding(8.dp)
-        ) {
-            // Author and Date
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
+                    .clickable(enabled = !thread.authorId.isNullOrEmpty()) {
+                        thread.authorId?.let { navigateToProfile(it) }
+                    }
             ) {
-                // Author Avatar
                 AsyncImage(
                     model = thread.authorAvatarUrl
                         ?: "https://res.cloudinary.com/deickev8a/image/upload/v1734704007/profile_images/placeholder_dp.png",
@@ -54,7 +55,6 @@ fun ThreadCard(
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
-
                 // Author Info
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -72,6 +72,7 @@ fun ThreadCard(
                 // Time Display
                 TimeDisplay(thread.createdAt)
             }
+
 
             // Thread Title
             Text(
