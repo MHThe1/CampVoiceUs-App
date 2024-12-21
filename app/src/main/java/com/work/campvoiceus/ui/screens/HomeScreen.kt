@@ -12,13 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.ui.components.ThreadCard
-import com.work.campvoiceus.viewmodels.HomeViewModel
+import com.work.campvoiceus.viewmodels.ThreadsViewModel
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: ThreadsViewModel = viewModel(),
     onLogout: () -> Unit
 ) {
     val threads by viewModel.threads.collectAsState(initial = emptyList())

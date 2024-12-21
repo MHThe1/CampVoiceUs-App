@@ -1,7 +1,10 @@
 package com.work.campvoiceus.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -14,17 +17,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
+import com.work.campvoiceus.ui.components.ThreadCard
+import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
+    threadsViewModel: ThreadsViewModel,
     onEditProfile: () -> Unit,
-    onShowThreads: (String) -> Unit // Navigate to threads for the user
 ) {
     val user by viewModel.user.collectAsState()
+    val threads by threadsViewModel.userThreads.collectAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val currentUserId by threadsViewModel.currentUserId.collectAsState()
+    Log.d("ProfileScreen", "Current User ID: $currentUserId")
+
 
     if (isLoading) {
         Box(
@@ -110,12 +119,34 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Threads Tab
-        TextButton(
-            onClick = { onShowThreads(currentUser._id) },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Text("Threads")
+        when {
+            threads.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(threads) { thread ->
+                        ThreadCard(
+                            thread = thread,
+                            currentUserId = currentUserId ?: "", // Pass the ID of the current user
+                            onVote = { threadId, voteType ->
+                                threadsViewModel.handleVote(threadId, voteType) // ViewModel function for voting
+                            },
+                            onCommentClick = { threadId ->
+                                threadsViewModel.openComments(threadId) // ViewModel function for opening comments
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
         }
     }
 }

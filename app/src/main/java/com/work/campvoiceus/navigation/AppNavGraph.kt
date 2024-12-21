@@ -16,7 +16,7 @@ import com.work.campvoiceus.ui.screens.LoginScreen
 import com.work.campvoiceus.ui.screens.ProfileScreen
 import com.work.campvoiceus.ui.screens.RegisterScreen
 import com.work.campvoiceus.utils.TokenManager
-import com.work.campvoiceus.viewmodels.HomeViewModel
+import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 
@@ -74,7 +74,7 @@ fun AppNavHost(
 
             // Home Screen
             composable("home") {
-                val viewModel = HomeViewModel(tokenManager) // Pass TokenManager to HomeViewModel
+                val viewModel = ThreadsViewModel(tokenManager) // Pass TokenManager to HomeViewModel
                 HomeScreen(
                     viewModel = viewModel,
                     onLogout = {
@@ -89,13 +89,11 @@ fun AppNavHost(
             // Profile Screen
             composable("profile") {
                 val viewModel = ProfileViewModel(tokenManager)
+                val threadsViewModel = ThreadsViewModel(tokenManager)
                 ProfileScreen(
                     viewModel = viewModel,
                     onEditProfile = { navController.navigate("editProfile") },
-                    onShowThreads = { userId ->
-                        // Navigate to threads screen for the user
-                        navController.navigate("userThreads/$userId")
-                    }
+                    threadsViewModel = threadsViewModel,
                 )
             }
 

@@ -18,6 +18,13 @@ interface ThreadService {
         @Header("Authorization") token: String
     ): Response<List<ThreadModel>>
 
+    @GET("threads/user/{userId}")
+    suspend fun getUserThreads(
+        @Path("userId") userId: String,
+        @Header("Authorization") token: String
+    ): Response<List<ThreadModel>>
+
+
     @POST("threads")
     suspend fun createThread(
         @Header("Authorization") token: String,
