@@ -10,12 +10,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.work.campvoiceus.ui.components.BottomNavigationBar
+import com.work.campvoiceus.ui.screens.CreateThreadScreen
 import com.work.campvoiceus.ui.screens.EditProfileScreen
 import com.work.campvoiceus.ui.screens.HomeScreen
 import com.work.campvoiceus.ui.screens.LoginScreen
 import com.work.campvoiceus.ui.screens.ProfileScreen
 import com.work.campvoiceus.ui.screens.RegisterScreen
 import com.work.campvoiceus.utils.TokenManager
+import com.work.campvoiceus.viewmodels.CreateThreadViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
@@ -109,6 +111,14 @@ fun AppNavHost(
                     }
                 )
             }
+
+            composable("createThread") {
+                val viewModel = CreateThreadViewModel(tokenManager)
+                CreateThreadScreen(viewModel = viewModel) {
+                    navController.navigate("home") // Navigate to HomeScreen after thread creation
+                }
+            }
+
 
         }
     }

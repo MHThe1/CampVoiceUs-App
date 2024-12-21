@@ -38,7 +38,7 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Threads",
+                text = "campvoiceus",
                 style = MaterialTheme.typography.headlineSmall,
             )
 
