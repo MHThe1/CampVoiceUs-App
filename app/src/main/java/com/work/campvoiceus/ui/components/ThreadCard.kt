@@ -1,24 +1,12 @@
 package com.work.campvoiceus.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +15,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.work.campvoiceus.models.ThreadModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun ThreadCard(
@@ -38,29 +28,35 @@ fun ThreadCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            .padding(2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
-            modifier = Modifier
-                .padding(16.dp)
+            modifier = Modifier.padding(8.dp)
         ) {
-            // Author Information
+            // Author and Date
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
+                // Author Avatar
                 AsyncImage(
-                    model = thread.authorAvatarUrl ?: "https://res.cloudinary.com/deickev8a/image/upload/v1734704007/profile_images/placeholder_dp.png",
+                    model = thread.authorAvatarUrl
+                        ?: "https://res.cloudinary.com/deickev8a/image/upload/v1734704007/profile_images/placeholder_dp.png",
                     contentDescription = "Author Avatar",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                 )
+
                 Spacer(modifier = Modifier.width(8.dp))
-                Column {
+
+                // Author Info
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = thread.authorName ?: "Unknown",
                         style = MaterialTheme.typography.bodyMedium,
@@ -72,6 +68,9 @@ fun ThreadCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                // Time Display
+                TimeDisplay(thread.createdAt)
             }
 
             // Thread Title
@@ -145,14 +144,41 @@ fun ThreadCard(
                     }
                 }
             }
-
-            // Date
-            Text(
-                text = thread.createdAt,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp)
-            )
         }
+    }
+}
+
+@Composable
+fun TimeDisplay(createdAt: String) {
+    val time = formatTime(createdAt)
+    Text(
+        text = time,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+fun formatTime(createdAt: String): String {
+    return try {
+        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        format.timeZone = TimeZone.getTimeZone("UTC") // Ensure parsing uses UTC
+        val date = format.parse(createdAt) ?: Date()
+
+        val now = Date()
+        val diffMs = now.time - date.time
+
+        val diffMinutes = (diffMs / (1000 * 60)) % 60
+        val diffHours = (diffMs / (1000 * 60 * 60)) % 24
+        val diffDays = (diffMs / (1000 * 60 * 60 * 24))
+
+        when {
+            diffMinutes < 1 -> "Just now"
+            diffHours < 1 -> "$diffMinutes min ago"
+            diffDays < 1 -> "$diffHours hours ago"
+            diffDays in 1..30 -> "$diffDays days ago"
+            else -> SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(date)
+        }
+    } catch (e: Exception) {
+        "Unknown time"
     }
 }

@@ -118,8 +118,6 @@ fun AppNavHost(
                     navController.navigate("home") // Navigate to HomeScreen after thread creation
                 }
             }
-
-
         }
     }
 }

@@ -28,7 +28,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(8.dp)
     ) {
         Row(
             modifier = Modifier
@@ -98,7 +98,7 @@ fun HomeScreen(
                                 viewModel.openComments(threadId) // ViewModel function for opening comments
                             }
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
