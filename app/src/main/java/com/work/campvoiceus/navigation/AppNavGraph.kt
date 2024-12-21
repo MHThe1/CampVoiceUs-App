@@ -26,6 +26,7 @@ import com.work.campvoiceus.ui.screens.ProfileScreen
 import com.work.campvoiceus.ui.screens.RegisterScreen
 import com.work.campvoiceus.utils.TokenManager
 import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
+import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
 import com.work.campvoiceus.viewmodels.CreateThreadViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
@@ -145,13 +146,16 @@ fun AppNavHost(
             composable("authorProfile/{userId}") { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
                 val viewModel = AuthorProfileViewModel(tokenManager, userId)
+                val authorThreadsViewModel = AuthorThreadsViewModel(tokenManager, userId)
+
                 AuthorProfileScreen(
                     viewModel = viewModel,
                     navigateToProfile = { authorId ->
                         navController.navigate("authorProfile/$authorId") {
                             popUpTo("authorProfile/{userId}") { saveState = true }
                         }
-                    }
+                    },
+                    threadsViewModel = authorThreadsViewModel
                 )
             }
         }

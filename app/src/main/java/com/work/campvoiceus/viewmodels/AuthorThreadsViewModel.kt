@@ -11,12 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
-class ThreadsViewModel(
-    private val tokenManager: TokenManager
+class AuthorThreadsViewModel(
+    private val tokenManager: TokenManager,
+    val authorId: String
 ) : ViewModel() {
-
-    private val _threads = MutableStateFlow<List<ThreadModel>>(emptyList())
-    val threads: StateFlow<List<ThreadModel>> = _threads
 
     private val _userThreads = MutableStateFlow<List<ThreadModel>>(emptyList())
     val userThreads: StateFlow<List<ThreadModel>> = _userThreads
@@ -32,7 +30,6 @@ class ThreadsViewModel(
 
     init {
         fetchCurrentUser()
-        fetchThreads()
     }
 
     private fun fetchCurrentUser() {
@@ -42,7 +39,7 @@ class ThreadsViewModel(
                 val response = userService.getUserProfile("Bearer $token")
                 if (response.isSuccessful) {
                     _currentUserId.value = response.body()?._id
-                    fetchUserThreads()
+                    fetchThisUserThreads()
                 } else {
                     _errorMessage.value = "Failed to fetch user ID"
                 }
@@ -52,16 +49,19 @@ class ThreadsViewModel(
         }
     }
 
-    fun fetchThreads() {
+
+    fun fetchThisUserThreads() {
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
             try {
                 val token = tokenManager.getToken()
-                val threadsResponse = threadService.getThreads("Bearer $token") // Update API call if needed
+                val userId = authorId
+
+                val threadsResponse = threadService.getUserThreads(userId, "Bearer $token")
                 if (threadsResponse.isSuccessful) {
-                    val threads = threadsResponse.body() ?: emptyList()
-                    val threadsWithAuthorInfo = threads.map { thread ->
+                    val userThreads = threadsResponse.body() ?: emptyList()
+                    val threadsWithAuthorInfo = userThreads.map { thread ->
                         val authorResponse = userService.getUserById("Bearer $token", mapOf("id" to thread.authorId))
                         if (authorResponse.isSuccessful) {
                             val authorInfo = authorResponse.body()
@@ -74,48 +74,9 @@ class ThreadsViewModel(
                             thread
                         }
                     }
-                    _threads.value = threadsWithAuthorInfo
+                    _userThreads.value = threadsWithAuthorInfo
                 } else {
                     _errorMessage.value = "Failed to fetch threads: ${threadsResponse.message()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Error fetching threads: ${e.localizedMessage}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun fetchUserThreads() {
-        _isLoading.value = true
-        _errorMessage.value = null
-        viewModelScope.launch {
-            try {
-                val token = tokenManager.getToken()
-                val userId = _currentUserId.value
-                if (userId != null) {
-                    val threadsResponse = threadService.getUserThreads(userId, "Bearer $token")
-                    if (threadsResponse.isSuccessful) {
-                        val userThreads = threadsResponse.body() ?: emptyList()
-                        val threadsWithAuthorInfo = userThreads.map { thread ->
-                            val authorResponse = userService.getUserById("Bearer $token", mapOf("id" to thread.authorId))
-                            if (authorResponse.isSuccessful) {
-                                val authorInfo = authorResponse.body()
-                                thread.copy(
-                                    authorName = authorInfo?.name ?: "Unknown",
-                                    authorUsername = authorInfo?.username ?: "unknown",
-                                    authorAvatarUrl = authorInfo?.avatarUrl
-                                )
-                            } else {
-                                thread
-                            }
-                        }
-                        _userThreads.value = threadsWithAuthorInfo
-                    } else {
-                        _errorMessage.value = "Failed to fetch threads: ${threadsResponse.message()}"
-                    }
-                } else {
-                    _errorMessage.value = "Current user ID is null"
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error fetching user threads: ${e.localizedMessage}"
@@ -124,6 +85,7 @@ class ThreadsViewModel(
             }
         }
     }
+
 
     fun handleVote(threadId: String, voteType: String){
         // Implement voting logic here
