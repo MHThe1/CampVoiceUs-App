@@ -4,7 +4,10 @@ data class ThreadModel(
     val _id: String,
     val title: String,
     val content: String,
-    val authorName: String,
+    val authorId: String,
+    val authorName: String? = null,
+    val authorUsername: String? = null,
+    val authorAvatarUrl: String? = null,
     val comments: List<CommentModel>,
     val upvotes: List<String>,
     val downvotes: List<String>,
@@ -18,6 +21,11 @@ data class CommentModel(
     val upvotes: List<String>,
     val downvotes: List<String>,
     val createdAt: String,
-    val _id: String,
     val commentId: String
+)
+
+data class AuthorInfo(
+    val name: String,
+    val username: String,
+    val avatarUrl: String?
 )

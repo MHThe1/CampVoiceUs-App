@@ -1,17 +1,20 @@
 package com.work.campvoiceus.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.work.campvoiceus.models.CreateThreadRequest
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.network.RetrofitInstance.threadService
+import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val tokenManager: TokenManager) : ViewModel() {
+
+class HomeViewModel(
+    private val tokenManager: TokenManager
+) : ViewModel() {
+
     private val _threads = MutableStateFlow<List<ThreadModel>>(emptyList())
     val threads: StateFlow<List<ThreadModel>> = _threads
 
@@ -21,8 +24,28 @@ class HomeViewModel(private val tokenManager: TokenManager) : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    private val _currentUserId = MutableStateFlow<String?>(null)
+    val currentUserId: StateFlow<String?> = _currentUserId
+
     init {
+        fetchCurrentUser()
         fetchThreads()
+    }
+
+    private fun fetchCurrentUser() {
+        viewModelScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                val response = userService.getUserProfile("Bearer $token")
+                if (response.isSuccessful) {
+                    _currentUserId.value = response.body()?._id
+                } else {
+                    _errorMessage.value = "Failed to fetch user ID"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Error fetching user ID: ${e.localizedMessage}"
+            }
+        }
     }
 
     fun fetchThreads() {
@@ -31,53 +54,40 @@ class HomeViewModel(private val tokenManager: TokenManager) : ViewModel() {
         viewModelScope.launch {
             try {
                 val token = tokenManager.getToken()
-                Log.d("AuthorizationHeader", "Bearer $token")
-                val response = threadService.getThreads("Bearer $token")
-                Log.d("HomeViewModel", "Response: $response")
-                if (response.isSuccessful) {
-                    val threadsList = response.body()
-                    if (threadsList != null) {
-                        _threads.value = threadsList
-                    } else {
-                        _errorMessage.value = "Failed to load threads. Empty response."
+                val threadsResponse = threadService.getThreads("Bearer $token") // Update API call if needed
+                if (threadsResponse.isSuccessful) {
+                    val threads = threadsResponse.body() ?: emptyList()
+                    val threadsWithAuthorInfo = threads.map { thread ->
+                        val authorResponse = userService.getUserById("Bearer $token", mapOf("id" to thread.authorId))
+                        if (authorResponse.isSuccessful) {
+                            val authorInfo = authorResponse.body()
+                            thread.copy(
+                                authorName = authorInfo?.name ?: "Unknown",
+                                authorUsername = authorInfo?.username ?: "unknown",
+                                authorAvatarUrl = authorInfo?.avatarUrl
+                            )
+                        } else {
+                            thread
+                        }
                     }
+                    _threads.value = threadsWithAuthorInfo
                 } else {
-                    _errorMessage.value = "Error: ${response.code()} - ${response.message()}"
+                    _errorMessage.value = "Failed to fetch threads: ${threadsResponse.message()}"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Network error: ${e.localizedMessage}"
+                _errorMessage.value = "Error fetching threads: ${e.localizedMessage}"
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-
-
-
-    fun createThread(title: String, content: String) {
-        _isLoading.value = true
-        _errorMessage.value = null
-        viewModelScope.launch {
-            try {
-                val token = tokenManager.getToken()
-                val response = threadService.createThread("Bearer $token", CreateThreadRequest(title, content))
-                if (response.isSuccessful) {
-                    val apiResponse = response.body()
-                    if (apiResponse != null && apiResponse.success) {
-                        fetchThreads() // Refresh the threads list
-                    } else {
-                        _errorMessage.value = "Failed to create thread. Try again later."
-                    }
-                } else {
-                    _errorMessage.value = "Error: ${response.code()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Network error. Please check your connection."
-            } finally {
-                _isLoading.value = false
-            }
-        }
+    fun handleVote(threadId: String, voteType: String){
+        // Implement voting logic here
     }
 
+    fun openComments(threadId: String){
+        // Implement comment logic here
+    }
 }
+

@@ -6,12 +6,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.work.campvoiceus.models.ThreadModel
+import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.HomeViewModel
 
 @Composable
@@ -19,9 +21,10 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
     onLogout: () -> Unit
 ) {
-    val threads = viewModel.threads.collectAsState(initial = emptyList()).value
-    val isLoading = viewModel.isLoading.collectAsState().value
-    val errorMessage = viewModel.errorMessage.collectAsState().value
+    val threads by viewModel.threads.collectAsState(initial = emptyList())
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
 
     Column(
         modifier = Modifier
@@ -86,7 +89,16 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(threads) { thread ->
-                        ThreadCard(thread)
+                        ThreadCard(
+                            thread = thread,
+                            currentUserId = currentUserId ?: "", // Pass the ID of the current user
+                            onVote = { threadId, voteType ->
+                                viewModel.handleVote(threadId, voteType) // ViewModel function for voting
+                            },
+                            onCommentClick = { threadId ->
+                                viewModel.openComments(threadId) // ViewModel function for opening comments
+                            }
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
@@ -96,41 +108,3 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
-@Composable
-fun ThreadCard(thread: ThreadModel) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = thread.title,
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Text(
-                text = "By ${thread.authorName}",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = thread.content,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
-            Text(
-                text = "${thread.comments.size} Comments",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-    }
-}
-

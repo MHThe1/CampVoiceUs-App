@@ -8,6 +8,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface ThreadService {
 
@@ -22,4 +23,17 @@ interface ThreadService {
         @Header("Authorization") token: String,
         @Body thread: CreateThreadRequest
     ): Response<ApiResponse<ThreadModel>>
+
+    @POST("threads/{threadId}/upvote")
+    suspend fun upvoteThread(
+        @Header("Authorization") token: String,
+        @Path("threadId") threadId: String
+    ): Response<Unit>
+
+    @POST("threads/{threadId}/downvote")
+    suspend fun downvoteThread(
+        @Header("Authorization") token: String,
+        @Path("threadId") threadId: String
+    ): Response<Unit>
+
 }

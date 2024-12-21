@@ -43,8 +43,6 @@ interface UserService {
         @Part avatar: MultipartBody.Part? // Optional avatar file
     ): Response<Unit>
 
-
-
     @GET("users/{username}")
     suspend fun getUserByUsername(
         @Path("username") username: String,
@@ -57,4 +55,10 @@ interface UserService {
         @Header("Authorization") token: String,
         @Body updateData: Map<String, String>
     ): Map<String, Any>
+
+    @POST("users/getuserbyid")
+    suspend fun getUserById(
+        @Header("Authorization") token: String,
+        @Body idMap: Map<String, String> // Key "id" maps to the user ID
+    ): Response<User>
 }
