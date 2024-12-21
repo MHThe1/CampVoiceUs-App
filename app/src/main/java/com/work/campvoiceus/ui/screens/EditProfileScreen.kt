@@ -1,7 +1,6 @@
 package com.work.campvoiceus.ui.screens
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.compose.foundation.layout.*
@@ -29,8 +28,7 @@ fun EditProfileScreen(
     val profileData by viewModel.profileData.collectAsState()
     val isLoading by viewModel.loading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-
-    val contentResolver = LocalContext.current.contentResolver // Get contentResolver in a composable context
+    var uploadComplete by remember { mutableStateOf(false) }
 
     var avatarUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -41,14 +39,6 @@ fun EditProfileScreen(
         avatarUri = uri
     }
 
-    // Fetch the profile data on screen load
-    LaunchedEffect(Unit) {
-        viewModel.fetchProfile()
-    }
-
-    Log.d("EditProfileScreen", "ProfileData: $profileData")
-
-    // Show loading spinner if data is being fetched
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -56,12 +46,18 @@ fun EditProfileScreen(
         return
     }
 
-    // Show error message if any error occurs
     if (errorMessage != null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
         }
         return
+    }
+
+    if (uploadComplete) {
+        // Trigger navigation after upload completes
+        LaunchedEffect(uploadComplete) {
+            onProfileUpdated()
+        }
     }
 
     Column(
@@ -98,7 +94,7 @@ fun EditProfileScreen(
 
         // Name Input
         OutlinedTextField(
-            value = profileData.name ?: "", // Use the fetched name
+            value = profileData.name,
             onValueChange = { viewModel.updateName(it) },
             label = { Text("Name") },
             modifier = Modifier.fillMaxWidth()
@@ -108,7 +104,7 @@ fun EditProfileScreen(
 
         // Bio Input
         OutlinedTextField(
-            value = profileData.bio ?: "", // Use the fetched bio
+            value = profileData.bio,
             onValueChange = { viewModel.updateBio(it) },
             label = { Text("Bio") },
             modifier = Modifier.fillMaxWidth()
@@ -117,6 +113,7 @@ fun EditProfileScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Save Button
+        val contentResolver = LocalContext.current.contentResolver
         Button(
             onClick = {
                 viewModel.updateProfile(
@@ -124,7 +121,7 @@ fun EditProfileScreen(
                     avatarUri = avatarUri,
                     contentResolver = contentResolver
                 )
-                onProfileUpdated()
+                uploadComplete = true
             },
             modifier = Modifier.fillMaxWidth()
         ) {

@@ -101,7 +101,6 @@ fun AppNavHost(
 
             // Edit Profile Screen
             composable("editProfile") {
-                // Replace `ProfileEditViewModel` with the appropriate ViewModel for the Edit Profile Screen
                 val viewModel = ProfileEditViewModel(tokenManager)
                 EditProfileScreen(
                     viewModel = viewModel,
