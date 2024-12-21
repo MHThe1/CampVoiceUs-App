@@ -61,6 +61,9 @@ dependencies {
     // navigation
     implementation("androidx.navigation:navigation-compose:2.7.1")
 
+    // animation
+    implementation("androidx.compose.animation:animation:1.7.6")
+
     // viewmodel and lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
