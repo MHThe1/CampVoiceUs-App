@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -20,11 +21,13 @@ import coil3.compose.rememberAsyncImagePainter
 import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
+import com.work.campvoiceus.viewmodels.VoterListViewModel
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     threadsViewModel: ThreadsViewModel,
+    voterListViewModel: VoterListViewModel,
     onEditProfile: () -> Unit,
     navigateToProfile: (String) -> Unit // Add this parameter
 ) {
@@ -33,6 +36,11 @@ fun ProfileScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val currentUserId by threadsViewModel.currentUserId.collectAsState()
+
+    LaunchedEffect(Unit) {
+        threadsViewModel.fetchUserThreads()
+    }
+
 
     if (isLoading) {
         Box(
@@ -143,7 +151,8 @@ fun ProfileScreen(
                             },
                             navigateToProfile = { authorId ->
                                 navigateToProfile(authorId) // Navigate to the author profile
-                            }
+                            },
+                            voterListViewModel = voterListViewModel
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }

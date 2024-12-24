@@ -1,5 +1,6 @@
 package com.work.campvoiceus.navigation
 
+import com.work.campvoiceus.viewmodels.VoterListViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.ui.components.BottomNavigationBar
 import com.work.campvoiceus.ui.components.TopBar
 import com.work.campvoiceus.ui.screens.AuthorProfileScreen
@@ -74,111 +76,119 @@ fun AppNavHost(
                 }
             }
         ) { innerPadding ->
+            // Apply the innerPadding directly to all screens within the NavHost
             NavHost(
                 navController = navController,
                 startDestination = startDestination,
-                modifier = modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding) // Respect padding
             ) {
-            // Login Screen
-            composable("login") {
-                LoginScreen(
-                    onLoginSuccess = { token ->
-                        TokenManager(navController.context).saveToken(token)
+                // Login Screen
+                composable("login") {
+                    LoginScreen(
+                        onLoginSuccess = { token ->
+                            TokenManager(navController.context).saveToken(token)
+                            navController.navigate("home") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        },
+                        onNavigateToRegister = {
+                            navController.navigate("register")
+                        }
+                    )
+                }
+
+                // Register Screen
+                composable("register") {
+                    RegisterScreen(
+                        onRegisterSuccess = {
+                            navController.navigate("login") {
+                                popUpTo("register") { inclusive = true }
+                            }
+                        },
+                        onNavigateToLogin = {
+                            navController.navigate("login") {
+                                popUpTo("register") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+                // Home Screen
+                composable("home") {
+                    val viewModel = ThreadsViewModel(tokenManager)
+                    val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    HomeScreen(
+                        viewModel = viewModel,
+                        voterListViewModel = voterListViewModel,
+                        navigateToProfile = { authorId ->
+                            navController.navigate("authorProfile/$authorId") {
+                                popUpTo("home") { saveState = true }
+                            }
+                        }
+                    )
+                }
+
+                // Profile Screen
+                composable("profile") {
+                    val viewModel = ProfileViewModel(tokenManager)
+                    val threadsViewModel = ThreadsViewModel(tokenManager)
+                    val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    ProfileScreen(
+                        viewModel = viewModel,
+                        threadsViewModel = threadsViewModel,
+                        voterListViewModel = voterListViewModel,
+                        onEditProfile = { navController.navigate("editProfile") },
+                        navigateToProfile = { authorId ->
+                            navController.navigate("authorProfile/$authorId") {
+                                popUpTo("profile") { saveState = true }
+                            }
+                        }
+                    )
+                }
+
+                // Edit Profile Screen
+                composable("editProfile") {
+                    val viewModel = ProfileEditViewModel(tokenManager)
+                    EditProfileScreen(
+                        viewModel = viewModel,
+                        onProfileUpdated = {
+                            navController.navigate("profile") {
+                                popUpTo("editProfile") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+                // Create Thread Screen
+                composable("createThread") {
+                    val viewModel = CreateThreadViewModel(tokenManager)
+                    CreateThreadScreen(viewModel = viewModel) {
                         navController.navigate("home") {
-                            popUpTo("login") { inclusive = true }
+                            popUpTo("createThread") { inclusive = true }
                         }
-                    },
-                    onNavigateToRegister = {
-                        navController.navigate("register")
-                    }
-                )
-            }
-
-            // Register Screen
-            composable("register") {
-                RegisterScreen(
-                    onRegisterSuccess = {
-                        navController.navigate("login") {
-                            popUpTo("register") { inclusive = true }
-                        }
-                    },
-                    onNavigateToLogin = {
-                        navController.navigate("login") {
-                            popUpTo("register") { inclusive = true }
-                        }
-                    }
-                )
-            }
-
-            // Home Screen
-            composable("home") {
-                val viewModel = ThreadsViewModel(tokenManager)
-                HomeScreen(
-                    viewModel = viewModel,
-                    navigateToProfile = { authorId ->
-                        navController.navigate("authorProfile/$authorId") {
-                            popUpTo("home") { saveState = true }
-                        }
-                    }
-                )
-            }
-
-            // Profile Screen
-            composable("profile") {
-                val viewModel = ProfileViewModel(tokenManager)
-                val threadsViewModel = ThreadsViewModel(tokenManager)
-                ProfileScreen(
-                    viewModel = viewModel,
-                    threadsViewModel = threadsViewModel,
-                    onEditProfile = { navController.navigate("editProfile") },
-                    navigateToProfile = { authorId ->
-                        navController.navigate("authorProfile/$authorId") {
-                            popUpTo("profile") { saveState = true }
-                        }
-                    }
-                )
-            }
-
-            // Edit Profile Screen
-            composable("editProfile") {
-                val viewModel = ProfileEditViewModel(tokenManager)
-                EditProfileScreen(
-                    viewModel = viewModel,
-                    onProfileUpdated = {
-                        navController.navigate("profile") {
-                            popUpTo("editProfile") { inclusive = true }
-                        }
-                    }
-                )
-            }
-
-            // Create Thread Screen
-            composable("createThread") {
-                val viewModel = CreateThreadViewModel(tokenManager)
-                CreateThreadScreen(viewModel = viewModel) {
-                    navController.navigate("home") {
-                        popUpTo("createThread") { inclusive = true }
                     }
                 }
-            }
 
-            // Author Profile Screen
-            composable("authorProfile/{userId}") { backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
-                val viewModel = AuthorProfileViewModel(tokenManager, userId)
-                val authorThreadsViewModel = AuthorThreadsViewModel(tokenManager, userId)
+                // Author Profile Screen
+                composable("authorProfile/{userId}") { backStackEntry ->
+                    val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
+                    val viewModel = AuthorProfileViewModel(tokenManager, userId)
+                    val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    val authorThreadsViewModel = AuthorThreadsViewModel(tokenManager, userId)
 
-                AuthorProfileScreen(
-                    viewModel = viewModel,
-                    threadsViewModel = authorThreadsViewModel,
-                    navigateToProfile = { authorId ->
-                        navController.navigate("authorProfile/$authorId") {
-                            popUpTo("authorProfile/{userId}") { saveState = true }
+                    AuthorProfileScreen(
+                        viewModel = viewModel,
+                        threadsViewModel = authorThreadsViewModel,
+                        voterListViewModel = voterListViewModel,
+                        navigateToProfile = { authorId ->
+                            navController.navigate("authorProfile/$authorId") {
+                                popUpTo("authorProfile/{userId}") { saveState = true }
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
 }
-}
+

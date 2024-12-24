@@ -4,11 +4,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddComment
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.ArrowCircleUp
+import androidx.compose.material.icons.filled.ModeComment
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,6 +18,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.work.campvoiceus.models.ThreadModel
+import com.work.campvoiceus.viewmodels.Voter
+import com.work.campvoiceus.viewmodels.VoterListViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,8 +29,14 @@ fun ThreadCard(
     currentUserId: String,
     onVote: (String, String) -> Unit,
     onCommentClick: (String) -> Unit,
-    navigateToProfile: (String) -> Unit
+    navigateToProfile: (String) -> Unit,
+    voterListViewModel: VoterListViewModel
 ) {
+    // State for managing modal visibility
+    val (isModalOpen, setModalOpen) = remember { mutableStateOf(false) }
+    val (voterType, setVoterType) = remember { mutableStateOf("") }
+    val voters = remember { mutableStateOf<List<Voter>>(emptyList()) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,7 +65,6 @@ fun ThreadCard(
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
-                // Author Info
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = thread.authorName ?: "Unknown",
@@ -69,12 +78,9 @@ fun ThreadCard(
                     )
                 }
 
-                // Time Display
                 TimeDisplay(thread.createdAt)
             }
 
-
-            // Thread Title
             Text(
                 text = thread.title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -82,7 +88,6 @@ fun ThreadCard(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Thread Content
             Text(
                 text = thread.content,
                 style = MaterialTheme.typography.bodyMedium,
@@ -90,17 +95,15 @@ fun ThreadCard(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Voting and Comments
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Upvote Button
                     IconButton(onClick = { onVote(thread._id, "upvote") }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowUpward,
+                            imageVector = Icons.Default.ArrowCircleUp,
                             contentDescription = "Upvote",
                             tint = if (thread.upvotes.contains(currentUserId))
                                 MaterialTheme.colorScheme.primary
@@ -111,15 +114,21 @@ fun ThreadCard(
                     Text(
                         text = "${thread.upvotes.size}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.clickable {
+                            setVoterType("upvote")
+                            setModalOpen(true)
+                            voterListViewModel.fetchVoters(thread.upvotes) { fetchedVoters ->
+                                voters.value = fetchedVoters // Update the voter list
+                            }
+                        }
                     )
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // Downvote Button
                     IconButton(onClick = { onVote(thread._id, "downvote") }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowDownward,
+                            imageVector = Icons.Default.ArrowCircleDown,
                             contentDescription = "Downvote",
                             tint = if (thread.downvotes.contains(currentUserId))
                                 MaterialTheme.colorScheme.error
@@ -130,11 +139,17 @@ fun ThreadCard(
                     Text(
                         text = "${thread.downvotes.size}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.clickable {
+                            setVoterType("downvote")
+                            setModalOpen(true)
+                            voterListViewModel.fetchVoters(thread.downvotes) { fetchedVoters ->
+                                voters.value = fetchedVoters // Update the voter list
+                            }
+                        }
                     )
                 }
 
-                // Comments Button
                 IconButton(onClick = { onCommentClick(thread._id) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -144,7 +159,7 @@ fun ThreadCard(
                             modifier = Modifier.padding(end = 4.dp)
                         )
                         Icon(
-                            imageVector = Icons.Default.AddComment,
+                            imageVector = Icons.Default.ModeComment,
                             contentDescription = "Comments",
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -152,8 +167,71 @@ fun ThreadCard(
                 }
             }
         }
+
+        if (isModalOpen) {
+            VoterListModal(
+                title = if (voterType == "upvote") "Upvoters" else "Downvoters",
+                voters = voters.value,
+                onDismiss = { setModalOpen(false) }
+            )
+        }
     }
 }
+
+@Composable
+fun VoterListModal(
+    title: String,
+    voters: List<Voter>,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text(text = title, style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Column {
+                voters.forEach { voter ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        AsyncImage(
+                            model = if (voter.avatarUrl.isEmpty()) {
+                                "https://res.cloudinary.com/deickev8a/image/upload/v1734704007/profile_images/placeholder_dp.png"
+                            } else {
+                                voter.avatarUrl
+                            },
+                            contentDescription = "${voter.name}'s Avatar",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = voter.name,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "@${voter.username}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onDismiss() }) {
+                Text("Close")
+            }
+        }
+    )
+}
+
+
+
 
 @Composable
 fun TimeDisplay(createdAt: String) {

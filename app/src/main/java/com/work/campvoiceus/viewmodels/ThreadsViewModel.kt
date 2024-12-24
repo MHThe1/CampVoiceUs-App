@@ -6,6 +6,7 @@ import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.utils.TokenManager
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -187,6 +188,33 @@ class ThreadsViewModel(
     fun clearErrorMessage() {
         _errorMessage.value = null
     }
+
+    fun fetchVoterNames(
+        voterIds: List<String>,
+        onResult: (List<String>) -> Unit
+    ) {
+        viewModelScope.launch { // Coroutine scope of ViewModel
+            val token = tokenManager.getToken()
+            val fetchedNames = mutableListOf<String>()
+            try {
+                for (id in voterIds) { // Loop through each voter ID
+                    val response = userService.getUserById(
+                        token = "Bearer $token",
+                        idMap = mapOf("id" to id)
+                    )
+                    if (response.isSuccessful) {
+                        response.body()?.let { user ->
+                            fetchedNames.add(user.name ?: "Unknown User")
+                        }
+                    }
+                }
+                onResult(fetchedNames) // Return the fetched names
+            } catch (e: Exception) {
+                onResult(emptyList()) // Return an empty list in case of failure
+            }
+        }
+    }
+
 
 
 

@@ -17,11 +17,13 @@ import coil3.compose.rememberAsyncImagePainter
 import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
 import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
+import com.work.campvoiceus.viewmodels.VoterListViewModel
 
 @Composable
 fun AuthorProfileScreen(
     viewModel: AuthorProfileViewModel,
     threadsViewModel: AuthorThreadsViewModel,
+    voterListViewModel: VoterListViewModel,
     navigateToProfile: (String) -> Unit
 ) {
     val user by viewModel.user.collectAsState()
@@ -130,7 +132,8 @@ fun AuthorProfileScreen(
                             },
                             navigateToProfile = { authorId ->
                                 navigateToProfile(authorId) // Navigate to the author profile
-                            }
+                            },
+                            voterListViewModel = voterListViewModel
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }

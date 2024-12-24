@@ -11,14 +11,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
+import com.work.campvoiceus.viewmodels.VoterListViewModel
 
 @Composable
 fun HomeScreen(
     viewModel: ThreadsViewModel,
+    voterListViewModel: VoterListViewModel,
     navigateToProfile: (String) -> Unit
 ) {
     val threads by viewModel.threads.collectAsState(initial = emptyList())
@@ -40,59 +41,69 @@ fun HomeScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(8.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
             when {
                 isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
                 threads.isEmpty() && errorMessage == null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "No threads available. Be the first to create one!")
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "No threads available. Be the first to create one!")
+                        }
                     }
                 }
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(threads) { thread ->
-                            ThreadCard(
-                                thread = thread,
-                                currentUserId = currentUserId ?: "",
-                                onVote = { threadId, voteType ->
-                                    viewModel.handleVote(threadId, voteType)
-                                },
-                                onCommentClick = { threadId ->
-                                    viewModel.openComments(threadId)
-                                },
-                                navigateToProfile = { authorId ->
-                                    if (authorId.isNotEmpty()) {
-                                        navigateToProfile(authorId)
-                                    }
+                    items(threads) { thread ->
+                        ThreadCard(
+                            thread = thread,
+                            currentUserId = currentUserId ?: "",
+                            onVote = { threadId, voteType ->
+                                viewModel.handleVote(threadId, voteType)
+                            },
+                            onCommentClick = { threadId ->
+                                viewModel.openComments(threadId)
+                            },
+                            navigateToProfile = { authorId ->
+                                if (authorId.isNotEmpty()) {
+                                    navigateToProfile(authorId)
                                 }
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
+                            },
+                            voterListViewModel = voterListViewModel
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
         }
+
+        // SnackbarHost to display snackbar messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter) // Position the snackbar at the bottom
+        )
     }
 }
+
+
+
