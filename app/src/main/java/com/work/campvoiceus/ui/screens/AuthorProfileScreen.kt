@@ -30,115 +30,133 @@ fun AuthorProfileScreen(
     val threads by threadsViewModel.userThreads.collectAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val threadsErrorMessage by threadsViewModel.errorMessage.collectAsState()
     val currentUserId by threadsViewModel.currentUserId.collectAsState()
 
-    if (isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-        return
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    if (errorMessage != null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = errorMessage ?: "Unknown error",
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center
+    // Display the snackbar if there's an error message
+    LaunchedEffect(threadsErrorMessage) {
+        threadsErrorMessage?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = "Dismiss",
+                duration = SnackbarDuration.Short
             )
+            threadsViewModel.clearErrorMessage() // Clear the error after showing the snackbar
         }
-        return
     }
 
-    if (user == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "No user data available",
-                textAlign = TextAlign.Center
-            )
-        }
-        return
-    }
 
-    val currentUser = user!!
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Profile Header
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = currentUser.avatarUrl ?: "https://res.cloudinary.com/deickev8a/image/upload/v1734704007/profile_images/placeholder_dp.png"
-                ),
-                contentDescription = "Avatar",
-                contentScale = ContentScale.Crop,
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (errorMessage != null) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = errorMessage ?: "Unknown error",
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else if (user == null) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No user data available",
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            val currentUser = user!!
+            Column(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = currentUser.name,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = "@${currentUser.username}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = currentUser.bio ?: "No bio available",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        when {
-            threads.isEmpty() -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "No threads available.")
-                }
-            }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(threads) { thread ->
-                        ThreadCard(
-                            thread = thread,
-                            currentUserId = currentUserId ?: "", // Pass the ID of the current user
-                            onVote = { threadId, voteType ->
-                                threadsViewModel.handleVote(threadId, voteType) // ViewModel function for voting
-                            },
-                            onCommentClick = { threadId ->
-                                threadsViewModel.openComments(threadId) // ViewModel function for opening comments
-                            },
-                            navigateToProfile = { authorId ->
-                                navigateToProfile(authorId) // Navigate to the author profile
-                            },
-                            voterListViewModel = voterListViewModel
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                // Profile Header
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            model = currentUser.avatarUrl ?: "https://res.cloudinary.com/deickev8a/image/upload/v1734704007/profile_images/placeholder_dp.png"
+                        ),
+                        contentDescription = "Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = currentUser.name,
+                            style = MaterialTheme.typography.headlineSmall
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "@${currentUser.username}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = currentUser.bio ?: "No bio available",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                when {
+                    threads.isEmpty() -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "No threads available.")
+                        }
+                    }
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(threads) { thread ->
+                                ThreadCard(
+                                    thread = thread,
+                                    currentUserId = currentUserId ?: "", // Pass the ID of the current user
+                                    onVote = { threadId, voteType ->
+                                        threadsViewModel.handleVote(threadId, voteType) // ViewModel function for voting
+                                    },
+                                    onCommentClick = { threadId ->
+                                        threadsViewModel.openComments(threadId) // ViewModel function for opening comments
+                                    },
+                                    navigateToProfile = { authorId ->
+                                        navigateToProfile(authorId) // Navigate to the author profile
+                                    },
+                                    voterListViewModel = voterListViewModel
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
                     }
                 }
             }
         }
+
+        // SnackbarHost to display snackbar messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter) // Position the snackbar at the bottom
+        )
     }
 }
+

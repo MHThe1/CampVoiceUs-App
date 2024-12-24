@@ -87,8 +87,67 @@ class AuthorThreadsViewModel(
     }
 
 
-    fun handleVote(threadId: String, voteType: String){
-        // Implement voting logic here
+    fun handleVote(threadId: String, voteType: String) {
+        // Find the thread to be updated
+        val threadIndex = _userThreads.value.indexOfFirst { it._id == threadId }
+        if (threadIndex == -1) return
+
+        val thread = _userThreads.value[threadIndex]
+        val currentUserId = _currentUserId.value ?: return
+
+        // Create a copy of the current threads for reverting in case of failure
+        val currentThreads = _userThreads.value.toList()
+
+        // Optimistically update the UI
+        val updatedThread = when (voteType) {
+            "upvote" -> thread.copy(
+                upvotes = if (thread.upvotes.contains(currentUserId)) {
+                    thread.upvotes - currentUserId // Remove upvote if already present
+                } else {
+                    thread.upvotes + currentUserId // Add upvote
+                },
+                downvotes = thread.downvotes - currentUserId // Remove downvote if present
+            )
+            "downvote" -> thread.copy(
+                downvotes = if (thread.downvotes.contains(currentUserId)) {
+                    thread.downvotes - currentUserId // Remove downvote if already present
+                } else {
+                    thread.downvotes + currentUserId // Add downvote
+                },
+                upvotes = thread.upvotes - currentUserId // Remove upvote if present
+            )
+            else -> thread
+        }
+
+        _userThreads.value = _userThreads.value.mapIndexed { index, t ->
+            if (index == threadIndex) updatedThread else t
+        }
+
+        // Send the API request
+        viewModelScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                val voteData = mapOf("threadId" to threadId)
+
+                val response = if (voteType == "upvote") {
+                    threadService.upvote(voteData, "Bearer $token")
+                } else {
+                    threadService.downvote(voteData, "Bearer $token")
+                }
+
+                if (!response.isSuccessful) {
+                    throw Exception("Failed to $voteType: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                // Revert to the previous state if the API call fails
+                _userThreads.value = currentThreads
+                _errorMessage.value = "Error during $voteType: ${e.localizedMessage}"
+            }
+        }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     fun openComments(threadId: String){
