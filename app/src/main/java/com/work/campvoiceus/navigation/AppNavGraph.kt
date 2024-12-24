@@ -1,6 +1,10 @@
 package com.work.campvoiceus.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,41 +37,48 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     tokenManager: TokenManager
 ) {
-    Scaffold(
-        topBar = {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        )
 
-            // Exclude TopBar for login and register screens
-            if (currentRoute != "login" && currentRoute != "register") {
-                TopBar(
-                    onNavigateToHome = {
-                        navController.navigate("home") {
-                            popUpTo("home") { saveState = true }
+        Scaffold(
+            topBar = {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                // Exclude TopBar for login and register screens
+                if (currentRoute != "login" && currentRoute != "register") {
+                    TopBar(
+                        onNavigateToHome = {
+                            navController.navigate("home") {
+                                popUpTo("home") { saveState = true }
+                            }
+                        },
+                        onLogout = {
+                            tokenManager.clearToken()
+                            navController.navigate("login") {
+                                popUpTo("home") { inclusive = true }
+                            }
                         }
-                    },
-                    onLogout = {
-                        tokenManager.clearToken()
-                        navController.navigate("login") {
-                            popUpTo("home") { inclusive = true }
-                        }
-                    }
-                )
+                    )
+                }
+            },
+            bottomBar = {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                if (currentRoute != "login" && currentRoute != "register") {
+                    BottomNavigationBar(navController)
+                }
             }
-        },
-        bottomBar = {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
-            if (currentRoute != "login" && currentRoute != "register") {
-                BottomNavigationBar(navController)
-            }
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = modifier.padding(innerPadding)
-        ) {
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = modifier.padding(innerPadding)
+            ) {
             // Login Screen
             composable("login") {
                 LoginScreen(
@@ -169,4 +180,5 @@ fun AppNavHost(
             }
         }
     }
+}
 }

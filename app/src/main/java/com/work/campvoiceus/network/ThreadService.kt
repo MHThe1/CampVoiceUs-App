@@ -35,23 +35,16 @@ interface ThreadService {
         @Header("Authorization") token: String
     ): Response<List<ThreadModel>>
 
+    @POST("threads/upvote")
+    suspend fun upvote(
+        @Body data: Map<String, String>,
+        @Header("Authorization") token: String
+    ): Response<ThreadModel>
 
-    @POST("threads")
-    suspend fun createThread(
-        @Header("Authorization") token: String,
-        @Body thread: CreateThreadRequest
-    ): Response<ApiResponse<ThreadModel>>
-
-    @POST("threads/{threadId}/upvote")
-    suspend fun upvoteThread(
-        @Header("Authorization") token: String,
-        @Path("threadId") threadId: String
-    ): Response<Unit>
-
-    @POST("threads/{threadId}/downvote")
-    suspend fun downvoteThread(
-        @Header("Authorization") token: String,
-        @Path("threadId") threadId: String
-    ): Response<Unit>
+    @POST("threads/downvote")
+    suspend fun downvote(
+        @Body data: Map<String, String>,
+        @Header("Authorization") token: String
+    ): Response<ThreadModel>
 
 }

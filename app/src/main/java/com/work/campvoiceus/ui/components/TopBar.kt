@@ -17,36 +17,39 @@ fun TopBar(
     onNavigateToHome: () -> Unit,
     onLogout: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(WindowInsets.statusBars.asPaddingValues())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
     ) {
-        // Special font for campvoiceus
-        Text(
-            text = "campvoiceus",
-            style = TextStyle(
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Serif,
-                color = MaterialTheme.colorScheme.primary
-            ),
+        Row(
             modifier = Modifier
-                .clickable { onNavigateToHome() }
-                .padding(4.dp)
-        )
-
-        // Logout button with a background
-        Button(
-            onClick = { onLogout() },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-            modifier = Modifier.height(32.dp)
+                .fillMaxWidth()
+                .padding(WindowInsets.statusBars.asPaddingValues())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Logout", fontSize = 14.sp)
+            Text(
+                text = "campvoiceus",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Serif,
+                    color = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier
+                    .clickable { onNavigateToHome() }
+                    .padding(4.dp)
+            )
+
+            Button(
+                onClick = { onLogout() },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                modifier = Modifier.height(32.dp)
+            ) {
+                Text("Logout", fontSize = 14.sp)
+            }
         }
     }
 }

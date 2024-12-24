@@ -102,7 +102,10 @@ fun ThreadCard(
                         Icon(
                             imageVector = Icons.Default.ArrowUpward,
                             contentDescription = "Upvote",
-                            tint = if (thread.upvotes.contains(currentUserId)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            tint = if (thread.upvotes.contains(currentUserId))
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Text(
@@ -118,7 +121,10 @@ fun ThreadCard(
                         Icon(
                             imageVector = Icons.Default.ArrowDownward,
                             contentDescription = "Downvote",
-                            tint = if (thread.downvotes.contains(currentUserId)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                            tint = if (thread.downvotes.contains(currentUserId))
+                                MaterialTheme.colorScheme.error
+                            else
+                                MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Text(
