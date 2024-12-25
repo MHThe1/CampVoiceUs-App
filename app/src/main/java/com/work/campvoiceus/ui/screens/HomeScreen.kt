@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.work.campvoiceus.ui.components.ThreadCard
+import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 
@@ -20,6 +21,7 @@ import com.work.campvoiceus.viewmodels.VoterListViewModel
 fun HomeScreen(
     viewModel: ThreadsViewModel,
     voterListViewModel: VoterListViewModel,
+    commentsViewModel: CommentsViewModel,
     navigateToProfile: (String) -> Unit
 ) {
     val threads by viewModel.threads.collectAsState(initial = emptyList())
@@ -88,7 +90,8 @@ fun HomeScreen(
                                     navigateToProfile(authorId)
                                 }
                             },
-                            voterListViewModel = voterListViewModel
+                            voterListViewModel = voterListViewModel,
+                            commentsViewModel = commentsViewModel
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                     }

@@ -14,6 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.ui.components.BottomNavigationBar
 import com.work.campvoiceus.ui.components.TopBar
@@ -27,6 +28,7 @@ import com.work.campvoiceus.ui.screens.RegisterScreen
 import com.work.campvoiceus.utils.TokenManager
 import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
 import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
+import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.CreateThreadViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
@@ -117,9 +119,11 @@ fun AppNavHost(
                 composable("home") {
                     val viewModel = ThreadsViewModel(tokenManager)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService)
                     HomeScreen(
                         viewModel = viewModel,
                         voterListViewModel = voterListViewModel,
+                        commentsViewModel = commentsViewModel,
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
                                 popUpTo("home") { saveState = true }
@@ -133,10 +137,12 @@ fun AppNavHost(
                     val viewModel = ProfileViewModel(tokenManager)
                     val threadsViewModel = ThreadsViewModel(tokenManager)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService)
                     ProfileScreen(
                         viewModel = viewModel,
                         threadsViewModel = threadsViewModel,
                         voterListViewModel = voterListViewModel,
+                        commentsViewModel = commentsViewModel,
                         onEditProfile = { navController.navigate("editProfile") },
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
@@ -175,11 +181,13 @@ fun AppNavHost(
                     val viewModel = AuthorProfileViewModel(tokenManager, userId)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val authorThreadsViewModel = AuthorThreadsViewModel(tokenManager, userId)
+                    val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService)
 
                     AuthorProfileScreen(
                         viewModel = viewModel,
                         threadsViewModel = authorThreadsViewModel,
                         voterListViewModel = voterListViewModel,
+                        commentsViewModel = commentsViewModel,
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
                                 popUpTo("authorProfile/{userId}") { saveState = true }

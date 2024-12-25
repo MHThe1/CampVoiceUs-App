@@ -1,8 +1,10 @@
 package com.work.campvoiceus.network
 
 import com.work.campvoiceus.models.ApiResponse
+import com.work.campvoiceus.models.CommentModel
 import com.work.campvoiceus.models.CreateThreadRequest
 import com.work.campvoiceus.models.ThreadModel
+import com.work.campvoiceus.models.ThreadResponse
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -46,5 +48,30 @@ interface ThreadService {
         @Body data: Map<String, String>,
         @Header("Authorization") token: String
     ): Response<ThreadModel>
+
+    @POST("threads/getthreadbyid")
+    suspend fun getThreadById(
+        @Body request: Map<String, String>,
+        @Header("Authorization") token: String
+    ): Response<ThreadResponse>
+
+
+    @POST("threads/comment")
+    suspend fun addComment(
+        @Body commentData: Map<String, String>,
+        @Header("Authorization") token: String
+    ): Response<ThreadModel>
+
+    @POST("threads/upvotecomment")
+    suspend fun upvoteComment(
+        @Body voteData: Map<String, String>,
+        @Header("Authorization") token: String
+    ): Response<CommentModel>
+
+    @POST("threads/downvotecomment")
+    suspend fun downvoteComment(
+        @Body voteData: Map<String, String>,
+        @Header("Authorization") token: String
+    ): Response<CommentModel>
 
 }

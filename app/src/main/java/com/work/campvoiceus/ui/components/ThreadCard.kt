@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.work.campvoiceus.models.ThreadModel
+import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.Voter
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 import java.text.SimpleDateFormat
@@ -30,12 +31,16 @@ fun ThreadCard(
     onVote: (String, String) -> Unit,
     onCommentClick: (String) -> Unit,
     navigateToProfile: (String) -> Unit,
-    voterListViewModel: VoterListViewModel
+    voterListViewModel: VoterListViewModel,
+    commentsViewModel: CommentsViewModel // Add the CommentsViewModel
 ) {
-    // State for managing modal visibility
-    val (isModalOpen, setModalOpen) = remember { mutableStateOf(false) }
+    // State for managing voter modal visibility
+    val (isVoterModalOpen, setVoterModalOpen) = remember { mutableStateOf(false) }
     val (voterType, setVoterType) = remember { mutableStateOf("") }
     val voters = remember { mutableStateOf<List<Voter>>(emptyList()) }
+
+    // State for managing comments modal visibility
+    val (isCommentsModalOpen, setCommentsModalOpen) = remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -117,9 +122,9 @@ fun ThreadCard(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.clickable {
                             setVoterType("upvote")
-                            setModalOpen(true)
+                            setVoterModalOpen(true)
                             voterListViewModel.fetchVoters(thread.upvotes) { fetchedVoters ->
-                                voters.value = fetchedVoters // Update the voter list
+                                voters.value = fetchedVoters
                             }
                         }
                     )
@@ -142,15 +147,18 @@ fun ThreadCard(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.clickable {
                             setVoterType("downvote")
-                            setModalOpen(true)
+                            setVoterModalOpen(true)
                             voterListViewModel.fetchVoters(thread.downvotes) { fetchedVoters ->
-                                voters.value = fetchedVoters // Update the voter list
+                                voters.value = fetchedVoters
                             }
                         }
                     )
                 }
 
-                IconButton(onClick = { onCommentClick(thread._id) }) {
+                IconButton(onClick = {
+                    commentsViewModel.fetchComments(thread._id) // Fetch comments
+                    setCommentsModalOpen(true) // Open the modal
+                }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "${thread.comments.size}",
@@ -168,15 +176,26 @@ fun ThreadCard(
             }
         }
 
-        if (isModalOpen) {
+        // Voter List Modal
+        if (isVoterModalOpen) {
             VoterListModal(
                 title = if (voterType == "upvote") "Upvoters" else "Downvoters",
                 voters = voters.value,
-                onDismiss = { setModalOpen(false) }
+                onDismiss = { setVoterModalOpen(false) }
+            )
+        }
+
+        // Comments Modal
+        if (isCommentsModalOpen) {
+            CommentsModal(
+                threadId = thread._id,
+                commentsViewModel = commentsViewModel,
+                onDismiss = { setCommentsModalOpen(false) }
             )
         }
     }
 }
+
 
 @Composable
 fun VoterListModal(

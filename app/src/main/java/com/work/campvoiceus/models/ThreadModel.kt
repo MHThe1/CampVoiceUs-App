@@ -16,16 +16,31 @@ data class ThreadModel(
 )
 
 data class CommentModel(
+    val commentId: String,
     val userId: String,
     val content: String,
     val upvotes: List<String>,
     val downvotes: List<String>,
     val createdAt: String,
-    val commentId: String
+    var userName: String? = null, // Dynamically added
+    var avatarUrl: String? = null, // Dynamically added
+    var name: String? = null // Dynamically added
 )
+
+
+data class ThreadResponse(
+    val thread: ThreadModel
+)
+
+
 
 data class AuthorInfo(
     val name: String,
     val username: String,
     val avatarUrl: String?
 )
+
+
+
+
+

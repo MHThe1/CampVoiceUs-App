@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import com.work.campvoiceus.ui.components.ThreadCard
+import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
@@ -29,6 +30,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     threadsViewModel: ThreadsViewModel,
     voterListViewModel: VoterListViewModel,
+    commentsViewModel: CommentsViewModel,
     onEditProfile: () -> Unit,
     navigateToProfile: (String) -> Unit
 ) {
@@ -160,7 +162,8 @@ fun ProfileScreen(
                                         threadsViewModel.openComments(threadId)
                                     },
                                     navigateToProfile = navigateToProfile,
-                                    voterListViewModel = voterListViewModel
+                                    voterListViewModel = voterListViewModel,
+                                    commentsViewModel = commentsViewModel
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
