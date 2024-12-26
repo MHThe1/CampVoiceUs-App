@@ -73,8 +73,10 @@ class CommentsViewModel(
                 if (response.isSuccessful) {
                     val threadData = response.body()?.thread
                     if (threadData != null) {
-                        _thread.value = threadData
-                        fetchComments(threadData.comments)
+                        val enrichedThread = enrichThreadWithAuthor(threadData, token)
+                        val enrichedComments = enrichCommentsWithAuthors(threadData.comments, token)
+                        _thread.value = enrichedThread
+                        _comments.value = enrichedComments
                     } else {
                         _errorMessage.value = "Thread not found"
                     }
@@ -89,30 +91,39 @@ class CommentsViewModel(
         }
     }
 
-    private fun fetchComments(comments: List<CommentModel>) {
-        viewModelScope.launch {
+    private suspend fun enrichThreadWithAuthor(thread: ThreadModel, token: String): ThreadModel {
+        return try {
+            val authorResponse = userService.getUserById("Bearer $token", mapOf("id" to thread.authorId))
+            if (authorResponse.isSuccessful) {
+                val author = authorResponse.body()
+                thread.copy(
+                    authorName = author?.name,
+                    authorUsername = author?.username,
+                    authorAvatarUrl = author?.avatarUrl
+                )
+            } else thread
+        } catch (e: Exception) {
+            thread
+        }
+    }
+
+    private suspend fun enrichCommentsWithAuthors(
+        comments: List<CommentModel>,
+        token: String
+    ): List<CommentModel> {
+        return comments.map { comment ->
             try {
-                val token = tokenManager.getToken() ?: return@launch
-                val enrichedComments = comments.map { comment ->
-                    try {
-                        val userResponse = userService.getUserById("Bearer $token", mapOf("id" to comment.userId))
-                        if (userResponse.isSuccessful) {
-                            val user = userResponse.body()
-                            comment.copy(
-                                userName = user?.username,
-                                avatarUrl = user?.avatarUrl,
-                                name = user?.name
-                            )
-                        } else {
-                            comment
-                        }
-                    } catch (e: Exception) {
-                        comment
-                    }
-                }
-                _comments.value = enrichedComments
+                val userResponse = userService.getUserById("Bearer $token", mapOf("id" to comment.userId))
+                if (userResponse.isSuccessful) {
+                    val user = userResponse.body()
+                    comment.copy(
+                        name = user?.name,
+                        userName = user?.username,
+                        avatarUrl = user?.avatarUrl
+                    )
+                } else comment
             } catch (e: Exception) {
-                _errorMessage.value = "Error fetching comment details: ${e.localizedMessage}"
+                comment
             }
         }
     }
@@ -138,6 +149,33 @@ class CommentsViewModel(
     }
 
     fun handleVote(threadId: String, voteType: String) {
+
+        val thread = _thread.value ?: return
+        val currentUserId = _currentUserId.value ?: return
+        val currentThread = _thread.value?.copy() ?: return
+
+        val updatedThread = when (voteType) {
+            "upvote" -> thread.copy(
+                upvotes = if (thread.upvotes.contains(currentUserId)) {
+                    thread.upvotes - currentUserId
+                } else {
+                    thread.upvotes + currentUserId
+                },
+                downvotes = thread.downvotes - currentUserId
+            )
+            "downvote" -> thread.copy(
+                downvotes = if (thread.downvotes.contains(currentUserId)) {
+                    thread.downvotes - currentUserId
+                } else {
+                    thread.downvotes + currentUserId
+                },
+                upvotes = thread.upvotes - currentUserId
+            )
+            else -> thread
+        }
+
+        _thread.value = updatedThread
+
         viewModelScope.launch {
             try {
                 val token = tokenManager.getToken() ?: return@launch
@@ -147,34 +185,62 @@ class CommentsViewModel(
                     threadService.downvote(mapOf("threadId" to threadId), "Bearer $token")
                 }
 
-                if (response.isSuccessful) {
-                    fetchThreadDetails()
-                } else {
-                    _errorMessage.value = "Failed to $voteType"
+                if (!response.isSuccessful) {
+                    throw Exception("Failed to $voteType: ${response.message()}")
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error: ${e.localizedMessage}"
+                _thread.value = currentThread
+                _errorMessage.value = "Error during $voteType: ${e.localizedMessage}"
             }
         }
     }
 
+
     fun handleCommentVote(commentId: String, voteType: String) {
+        val commentIndex = _comments.value.indexOfFirst { it.commentId == commentId }
+        if (commentIndex == -1) return
+
+        val comment = _comments.value[commentIndex]
+        val currentUserId = _currentUserId.value ?: return
+        val currentComments = _comments.value.toList()
+
+        val updatedComment = when (voteType) {
+            "upvote" -> comment.copy(
+                upvotes = if (comment.upvotes.contains(currentUserId)) {
+                    comment.upvotes - currentUserId
+                } else {
+                    comment.upvotes + currentUserId
+                },
+                downvotes = comment.downvotes - currentUserId
+            )
+            "downvote" -> comment.copy(
+                downvotes = if (comment.downvotes.contains(currentUserId)) {
+                    comment.downvotes - currentUserId
+                } else {
+                    comment.downvotes + currentUserId
+                },
+                upvotes = comment.upvotes - currentUserId
+            )
+            else -> comment
+        }
+
+        _comments.value = _comments.value.mapIndexed { index, c ->
+            if (index == commentIndex) updatedComment else c
+        }
+
         viewModelScope.launch {
             try {
                 val token = tokenManager.getToken() ?: return@launch
                 val response = if (voteType == "upvote") {
-                    threadService.upvoteComment(mapOf("commentId" to commentId), "Bearer $token")
+                    threadService.upvoteComment(mapOf("threadId" to threadId, "commentId" to commentId), "Bearer $token")
                 } else {
-                    threadService.downvoteComment(mapOf("commentId" to commentId), "Bearer $token")
+                    threadService.downvoteComment(mapOf("threadId" to threadId, "commentId" to commentId), "Bearer $token")
                 }
 
-                if (response.isSuccessful) {
-                    fetchThreadDetails()
-                } else {
-                    _errorMessage.value = "Failed to $voteType comment"
-                }
+                if (!response.isSuccessful) throw Exception("Failed to $voteType comment: ${response.message()}")
             } catch (e: Exception) {
-                _errorMessage.value = "Error: ${e.localizedMessage}"
+                _comments.value = currentComments
+                _errorMessage.value = "Error during $voteType: ${e.localizedMessage}"
             }
         }
     }

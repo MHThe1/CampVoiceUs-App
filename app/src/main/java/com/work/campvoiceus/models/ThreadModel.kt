@@ -22,9 +22,9 @@ data class CommentModel(
     val upvotes: List<String>,
     val downvotes: List<String>,
     val createdAt: String,
-    var userName: String? = null, // Dynamically added
-    var avatarUrl: String? = null, // Dynamically added
-    var name: String? = null // Dynamically added
+    var userName: String? = null,
+    var avatarUrl: String? = null,
+    var name: String? = null
 )
 
 
@@ -32,7 +32,10 @@ data class ThreadResponse(
     val thread: ThreadModel
 )
 
-
+data class CommentResponse(
+    val message: String,
+    val updatedComment: CommentModel
+)
 
 data class AuthorInfo(
     val name: String,

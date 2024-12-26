@@ -18,7 +18,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.work.campvoiceus.models.ThreadModel
-import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.Voter
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 import java.text.SimpleDateFormat

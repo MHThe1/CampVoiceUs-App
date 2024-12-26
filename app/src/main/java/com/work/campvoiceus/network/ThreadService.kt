@@ -2,6 +2,7 @@ package com.work.campvoiceus.network
 
 import com.work.campvoiceus.models.ApiResponse
 import com.work.campvoiceus.models.CommentModel
+import com.work.campvoiceus.models.CommentResponse
 import com.work.campvoiceus.models.CreateThreadRequest
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.models.ThreadResponse
@@ -66,12 +67,12 @@ interface ThreadService {
     suspend fun upvoteComment(
         @Body voteData: Map<String, String>,
         @Header("Authorization") token: String
-    ): Response<CommentModel>
+    ): Response<CommentResponse>
 
     @POST("threads/downvotecomment")
     suspend fun downvoteComment(
         @Body voteData: Map<String, String>,
         @Header("Authorization") token: String
-    ): Response<CommentModel>
+    ): Response<CommentResponse>
 
 }
