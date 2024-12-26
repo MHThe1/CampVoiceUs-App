@@ -1,10 +1,14 @@
 package com.work.campvoiceus.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.ArrowCircleUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
+import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.Voter
 import com.work.campvoiceus.viewmodels.VoterListViewModel
@@ -20,94 +25,87 @@ import com.work.campvoiceus.viewmodels.VoterListViewModel
 fun CommentsModal(
     threadId: String,
     commentsViewModel: CommentsViewModel,
+    threadContent: String, // Added thread content to display
+    voterListViewModel: VoterListViewModel,
     onDismiss: () -> Unit
-) {
-    val comments by commentsViewModel.comments.collectAsState()
-    val isLoading by commentsViewModel.isLoading.collectAsState()
-    val errorMessage by commentsViewModel.errorMessage.collectAsState()
+){}
+//{
+//    val comments by commentsViewModel.comments.collectAsState()
+//    val isLoading by commentsViewModel.isLoading.collectAsState()
+//    val errorMessage by commentsViewModel.errorMessage.collectAsState()
+//
+//    AlertDialog(
+//        onDismissRequest = onDismiss,
+//        title = { Text("Comments") },
+//        text = {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(8.dp)
+//            ) {
+//                // Show the thread content at the top
+//                Text(
+//                    text = threadContent,
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    color = MaterialTheme.colorScheme.onSurface,
+//                    modifier = Modifier.padding(bottom = 16.dp)
+//                )
+//
+//                if (isLoading) {
+//                    Box(
+//                        modifier = Modifier.fillMaxSize(),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        CircularProgressIndicator()
+//                    }
+//                } else if (errorMessage != null) {
+//                    Text(
+//                        text = errorMessage ?: "An error occurred",
+//                        color = MaterialTheme.colorScheme.error
+//                    )
+//                } else {
+//                    LazyColumn(
+//                        modifier = Modifier.fillMaxSize()
+//                    ) {
+//                        items(comments) { comment ->
+//                            ThreadCard(
+//                                thread = ThreadModel(
+//                                    _id = comment.commentId,
+//                                    title = "", // Comments don't have a title
+//                                    content = comment.content,
+//                                    authorId = comment.userId,
+//                                    authorName = comment.userName,
+//                                    authorUsername = null,
+//                                    authorAvatarUrl = comment.avatarUrl,
+//                                    comments = emptyList(), // Comments don't have nested comments
+//                                    upvotes = comment.upvotes,
+//                                    downvotes = comment.downvotes,
+//                                    createdAt = comment.createdAt,
+//                                    __v = 0
+//                                ),
+//                                currentUserId = commentsViewModel.getCurrentUserId(),
+//                                onVote = { commentId, voteType ->
+//                                    commentsViewModel.handleVote(commentId, voteType)
+//                                },
+//                                navigateToThread = {},
+//                                navigateToProfile = {}, // Handle navigation if needed
+//                                voterListViewModel = voterListViewModel,
+//                            )
+//                            Spacer(modifier = Modifier.height(8.dp))
+//                        }
+//                    }
+//                }
+//            }
+//        },
+//        confirmButton = {
+//            Button(onClick = onDismiss) {
+//                Text("Close")
+//            }
+//        }
+//    )
+//}
 
-    var newComment by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        commentsViewModel.fetchComments(threadId)
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Comments") },
-        text = {
-            Column {
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else if (errorMessage != null) {
-                    Text(
-                        text = errorMessage ?: "An error occurred",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                } else {
-                    LazyColumn {
-                        items(comments) { comment ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Image(
-                                    painter = rememberAsyncImagePainter(
-                                        model = comment.avatarUrl
-                                            ?: "https://res.cloudinary.com/deickev8a/image/upload/v1734704007/profile_images/placeholder_dp.png"
-                                    ),
-                                    contentDescription = "${comment.userName ?: "Unknown User"}'s Avatar",
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        text = comment.userName ?: "Unknown User",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    Text(
-                                        text = comment.content,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    OutlinedTextField(
-                        value = newComment,
-                        onValueChange = { newComment = it },
-                        label = { Text("Add a comment") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            if (newComment.isNotBlank()) {
-                                commentsViewModel.addComment(threadId, newComment)
-                                newComment = ""
-                            }
-                        }
-                    ) {
-                        Text("Post")
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Close")
-            }
-        }
-    )
-}
 
 @Composable
 fun VotingModal(

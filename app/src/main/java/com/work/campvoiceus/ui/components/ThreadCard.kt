@@ -29,18 +29,13 @@ fun ThreadCard(
     thread: ThreadModel,
     currentUserId: String,
     onVote: (String, String) -> Unit,
-    onCommentClick: (String) -> Unit,
+    navigateToThread: (String) -> Unit, // Navigate to ThreadDetailsScreen
     navigateToProfile: (String) -> Unit,
     voterListViewModel: VoterListViewModel,
-    commentsViewModel: CommentsViewModel // Add the CommentsViewModel
 ) {
-    // State for managing voter modal visibility
     val (isVoterModalOpen, setVoterModalOpen) = remember { mutableStateOf(false) }
     val (voterType, setVoterType) = remember { mutableStateOf("") }
     val voters = remember { mutableStateOf<List<Voter>>(emptyList()) }
-
-    // State for managing comments modal visibility
-    val (isCommentsModalOpen, setCommentsModalOpen) = remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -55,8 +50,8 @@ fun ThreadCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
-                    .clickable(enabled = !thread.authorId.isNullOrEmpty()) {
-                        thread.authorId?.let { navigateToProfile(it) }
+                    .clickable(enabled = thread.authorId.isNotEmpty()) {
+                        navigateToProfile(thread.authorId)
                     }
             ) {
                 AsyncImage(
@@ -155,10 +150,7 @@ fun ThreadCard(
                     )
                 }
 
-                IconButton(onClick = {
-                    commentsViewModel.fetchComments(thread._id)
-                    setCommentsModalOpen(true)
-                }) {
+                IconButton(onClick = { navigateToThread(thread._id) }) { // Navigate to ThreadDetailsScreen
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "${thread.comments.size}",
@@ -182,15 +174,6 @@ fun ThreadCard(
                 title = if (voterType == "upvote") "Upvoters" else "Downvoters",
                 voters = voters.value,
                 onDismiss = { setVoterModalOpen(false) }
-            )
-        }
-
-        // Comments Modal
-        if (isCommentsModalOpen) {
-            CommentsModal(
-                threadId = thread._id,
-                commentsViewModel = commentsViewModel,
-                onDismiss = { setCommentsModalOpen(false) }
             )
         }
     }

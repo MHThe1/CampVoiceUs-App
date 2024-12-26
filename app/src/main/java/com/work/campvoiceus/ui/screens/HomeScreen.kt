@@ -21,8 +21,8 @@ import com.work.campvoiceus.viewmodels.VoterListViewModel
 fun HomeScreen(
     viewModel: ThreadsViewModel,
     voterListViewModel: VoterListViewModel,
-    commentsViewModel: CommentsViewModel,
-    navigateToProfile: (String) -> Unit
+    navigateToProfile: (String) -> Unit,
+    navigateToThread: (String) -> Unit
 ) {
     val threads by viewModel.threads.collectAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
@@ -82,16 +82,17 @@ fun HomeScreen(
                             onVote = { threadId, voteType ->
                                 viewModel.handleVote(threadId, voteType)
                             },
-                            onCommentClick = { threadId ->
-                                viewModel.openComments(threadId)
+                            navigateToThread = { threadId ->
+                                if (threadId.isNotEmpty()) {
+                                    navigateToThread(threadId)
+                                }
                             },
                             navigateToProfile = { authorId ->
                                 if (authorId.isNotEmpty()) {
                                     navigateToProfile(authorId)
                                 }
                             },
-                            voterListViewModel = voterListViewModel,
-                            commentsViewModel = commentsViewModel
+                            voterListViewModel = voterListViewModel
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                     }

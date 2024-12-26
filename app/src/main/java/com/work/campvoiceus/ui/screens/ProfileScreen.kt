@@ -30,7 +30,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     threadsViewModel: ThreadsViewModel,
     voterListViewModel: VoterListViewModel,
-    commentsViewModel: CommentsViewModel,
+    navigateToThread: (String) -> Unit,
     onEditProfile: () -> Unit,
     navigateToProfile: (String) -> Unit
 ) {
@@ -158,12 +158,9 @@ fun ProfileScreen(
                                     onVote = { threadId, voteType ->
                                         threadsViewModel.handleVote(threadId, voteType)
                                     },
-                                    onCommentClick = { threadId ->
-                                        threadsViewModel.openComments(threadId)
-                                    },
+                                    navigateToThread = navigateToThread,
                                     navigateToProfile = navigateToProfile,
-                                    voterListViewModel = voterListViewModel,
-                                    commentsViewModel = commentsViewModel
+                                    voterListViewModel = voterListViewModel
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                             }

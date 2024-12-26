@@ -25,7 +25,7 @@ fun AuthorProfileScreen(
     viewModel: AuthorProfileViewModel,
     threadsViewModel: AuthorThreadsViewModel,
     voterListViewModel: VoterListViewModel,
-    commentsViewModel: CommentsViewModel,
+    navigateToThread: (String) -> Unit,
     navigateToProfile: (String) -> Unit
 ) {
     val user by viewModel.user.collectAsState()
@@ -137,14 +137,13 @@ fun AuthorProfileScreen(
                                     onVote = { threadId, voteType ->
                                         threadsViewModel.handleVote(threadId, voteType) // ViewModel function for voting
                                     },
-                                    onCommentClick = { threadId ->
-                                        threadsViewModel.openComments(threadId) // ViewModel function for opening comments
+                                    navigateToThread = { threadId ->
+                                        navigateToThread(threadId)
                                     },
                                     navigateToProfile = { authorId ->
                                         navigateToProfile(authorId) // Navigate to the author profile
                                     },
-                                    voterListViewModel = voterListViewModel,
-                                    commentsViewModel = commentsViewModel
+                                    voterListViewModel = voterListViewModel
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                             }

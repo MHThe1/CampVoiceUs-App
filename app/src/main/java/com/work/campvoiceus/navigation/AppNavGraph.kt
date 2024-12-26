@@ -1,5 +1,6 @@
 package com.work.campvoiceus.navigation
 
+import android.util.Log
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -25,6 +27,7 @@ import com.work.campvoiceus.ui.screens.HomeScreen
 import com.work.campvoiceus.ui.screens.LoginScreen
 import com.work.campvoiceus.ui.screens.ProfileScreen
 import com.work.campvoiceus.ui.screens.RegisterScreen
+import com.work.campvoiceus.ui.screens.ThreadDetailsScreen
 import com.work.campvoiceus.utils.TokenManager
 import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
 import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
@@ -41,6 +44,17 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     tokenManager: TokenManager
 ) {
+    // Log the current route whenever it changes
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Log the current route
+    LaunchedEffect(currentRoute) {
+        currentRoute?.let { route ->
+            Log.d("Navigation", "Current route: $route")
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -53,7 +67,6 @@ fun AppNavHost(
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                // Exclude TopBar for login and register screens
                 if (currentRoute != "login" && currentRoute != "register") {
                     TopBar(
                         onNavigateToHome = {
@@ -78,11 +91,10 @@ fun AppNavHost(
                 }
             }
         ) { innerPadding ->
-            // Apply the innerPadding directly to all screens within the NavHost
             NavHost(
                 navController = navController,
                 startDestination = startDestination,
-                modifier = Modifier.padding(innerPadding) // Respect padding
+                modifier = Modifier.padding(innerPadding)
             ) {
                 // Login Screen
                 composable("login") {
@@ -119,33 +131,40 @@ fun AppNavHost(
                 composable("home") {
                     val viewModel = ThreadsViewModel(tokenManager)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
-                    val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService)
                     HomeScreen(
                         viewModel = viewModel,
                         voterListViewModel = voterListViewModel,
-                        commentsViewModel = commentsViewModel,
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
+                                popUpTo("home") { saveState = true }
+                            }
+                        },
+                        navigateToThread = { threadId ->
+                            navController.navigate("threadDetails/$threadId") {
                                 popUpTo("home") { saveState = true }
                             }
                         }
                     )
                 }
 
+
                 // Profile Screen
                 composable("profile") {
                     val viewModel = ProfileViewModel(tokenManager)
                     val threadsViewModel = ThreadsViewModel(tokenManager)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
-                    val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService)
                     ProfileScreen(
                         viewModel = viewModel,
                         threadsViewModel = threadsViewModel,
                         voterListViewModel = voterListViewModel,
-                        commentsViewModel = commentsViewModel,
                         onEditProfile = { navController.navigate("editProfile") },
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
+                                popUpTo("profile") { saveState = true }
+                            }
+                        },
+                        navigateToThread = { threadId ->
+                            navController.navigate("threadDetails/$threadId") {
                                 popUpTo("profile") { saveState = true }
                             }
                         }
@@ -181,16 +200,42 @@ fun AppNavHost(
                     val viewModel = AuthorProfileViewModel(tokenManager, userId)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val authorThreadsViewModel = AuthorThreadsViewModel(tokenManager, userId)
-                    val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService)
 
                     AuthorProfileScreen(
                         viewModel = viewModel,
                         threadsViewModel = authorThreadsViewModel,
                         voterListViewModel = voterListViewModel,
-                        commentsViewModel = commentsViewModel,
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
                                 popUpTo("authorProfile/{userId}") { saveState = true }
+                            }
+                        },
+                        navigateToThread = { threadId ->
+                            navController.navigate("threadDetails/$threadId") {
+                                popUpTo("authorProfile/{userId}") { saveState = true }
+                            }
+                        }
+                    )
+                }
+
+                composable("threadDetails/{threadId}") { backStackEntry ->
+                    val threadId = backStackEntry.arguments?.getString("threadId") ?: return@composable
+                    val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService, threadId)
+
+                    ThreadDetailsScreen(
+                        commentsViewModel = commentsViewModel,
+                        voterListViewModel = voterListViewModel,
+                        navigateToProfile = { authorId ->
+                            navController.navigate("authorProfile/$authorId") {
+                                popUpTo("threadDetails/{threadId}") { inclusive = false }
+                            }
+                        },
+                        navigateToThread = { newThreadId ->
+                            if (threadId != newThreadId) {
+                                navController.navigate("threadDetails/$newThreadId") {
+                                    popUpTo("threadDetails/{threadId}") { inclusive = true }
+                                }
                             }
                         }
                     )
