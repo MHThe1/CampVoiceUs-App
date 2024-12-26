@@ -156,8 +156,8 @@ fun ThreadCard(
                 }
 
                 IconButton(onClick = {
-                    commentsViewModel.fetchComments(thread._id) // Fetch comments
-                    setCommentsModalOpen(true) // Open the modal
+                    commentsViewModel.fetchComments(thread._id)
+                    setCommentsModalOpen(true)
                 }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(

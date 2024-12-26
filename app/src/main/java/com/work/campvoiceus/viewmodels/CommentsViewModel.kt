@@ -77,10 +77,7 @@ class CommentsViewModel(
                     "Bearer $token"
                 )
                 if (response.isSuccessful) {
-                    val newComment = response.body()?.comments?.lastOrNull()
-                    if (newComment != null) {
-                        fetchComments(threadId) // Refresh comments
-                    }
+                    fetchComments(threadId)
                 } else {
                     _errorMessage.value = "Failed to add comment: ${response.message()}"
                 }
