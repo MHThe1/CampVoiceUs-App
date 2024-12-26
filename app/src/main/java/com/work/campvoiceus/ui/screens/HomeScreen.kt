@@ -33,6 +33,7 @@ fun HomeScreen(
 
     // Display the snackbar if there's an error message
     LaunchedEffect(errorMessage) {
+        viewModel.fetchThreads()
         if (!errorMessage.isNullOrEmpty()) {
             snackbarHostState.showSnackbar(
                 message = errorMessage!!,

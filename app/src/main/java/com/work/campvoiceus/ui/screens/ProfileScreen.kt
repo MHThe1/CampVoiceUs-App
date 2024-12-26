@@ -20,15 +20,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import com.work.campvoiceus.ui.components.ThreadCard
-import com.work.campvoiceus.viewmodels.CommentsViewModel
-import com.work.campvoiceus.viewmodels.ThreadsViewModel
+import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
-    threadsViewModel: ThreadsViewModel,
+    threadsViewModel: ProfileThreadsViewModel,
     voterListViewModel: VoterListViewModel,
     navigateToThread: (String) -> Unit,
     onEditProfile: () -> Unit,
@@ -42,11 +41,6 @@ fun ProfileScreen(
     val currentUserId by threadsViewModel.currentUserId.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
-
-    // Load user threads only once when the screen is opened
-    LaunchedEffect(Unit) {
-        threadsViewModel.fetchUserThreads()
-    }
 
     // Display the snackbar if there's an error message
     LaunchedEffect(threadsErrorMessage) {
@@ -151,19 +145,27 @@ fun ProfileScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(threads) { thread ->
+                            items(threads, key = { it._id }) { thread ->
                                 ThreadCard(
                                     thread = thread,
                                     currentUserId = currentUserId ?: "",
                                     onVote = { threadId, voteType ->
                                         threadsViewModel.handleVote(threadId, voteType)
                                     },
-                                    navigateToThread = navigateToThread,
-                                    navigateToProfile = navigateToProfile,
+                                    navigateToThread = { threadId ->
+                                        if (threadId.isNotEmpty()) {
+                                            navigateToThread(threadId)
+                                        }
+                                    },
+                                    navigateToProfile = { authorId ->
+                                        if (authorId.isNotEmpty()) {
+                                            navigateToProfile(authorId)
+                                        }
+                                    },
                                     voterListViewModel = voterListViewModel
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
                             }
+
                         }
                     }
                 }

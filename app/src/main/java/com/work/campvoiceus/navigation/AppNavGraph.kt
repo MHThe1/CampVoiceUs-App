@@ -35,6 +35,7 @@ import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.CreateThreadViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
+import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 
 @Composable
@@ -151,7 +152,7 @@ fun AppNavHost(
                 // Profile Screen
                 composable("profile") {
                     val viewModel = ProfileViewModel(tokenManager)
-                    val threadsViewModel = ThreadsViewModel(tokenManager)
+                    val threadsViewModel = ProfileThreadsViewModel(tokenManager)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     ProfileScreen(
                         viewModel = viewModel,
