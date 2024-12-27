@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,6 +34,7 @@ import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
 import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
 import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.CreateThreadViewModel
+import com.work.campvoiceus.viewmodels.LoginViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
 import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
@@ -99,9 +101,12 @@ fun AppNavHost(
             ) {
                 // Login Screen
                 composable("login") {
+                    val context = LocalContext.current
+                    val tokenManager = TokenManager(context)
+
                     LoginScreen(
+                        tokenManager = tokenManager,
                         onLoginSuccess = { token ->
-                            TokenManager(navController.context).saveToken(token)
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
@@ -111,6 +116,7 @@ fun AppNavHost(
                         }
                     )
                 }
+
 
                 // Register Screen
                 composable("register") {

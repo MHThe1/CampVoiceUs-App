@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.work.campvoiceus" />
+                  <option name="mobileSdkAppId" value="1:1052041251379:android:b387aef631a69915563146" />
+                  <option name="projectId" value="campvoiceus" />
+                  <option name="projectNumber" value="1052041251379" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
