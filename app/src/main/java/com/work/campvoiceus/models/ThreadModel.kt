@@ -33,6 +33,11 @@ data class ThreadResponse(
     val thread: ThreadModel
 )
 
+data class ThreadsByTagResponse(
+    val message: String,
+    val threads: List<ThreadModel>
+)
+
 data class CommentResponse(
     val message: String,
     val updatedComment: CommentModel

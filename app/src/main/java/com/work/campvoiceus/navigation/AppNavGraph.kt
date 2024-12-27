@@ -13,10 +13,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.ui.components.BottomNavigationBar
@@ -28,6 +31,7 @@ import com.work.campvoiceus.ui.screens.HomeScreen
 import com.work.campvoiceus.ui.screens.LoginScreen
 import com.work.campvoiceus.ui.screens.ProfileScreen
 import com.work.campvoiceus.ui.screens.RegisterScreen
+import com.work.campvoiceus.ui.screens.TagThreadsScreen
 import com.work.campvoiceus.ui.screens.ThreadDetailsScreen
 import com.work.campvoiceus.utils.TokenManager
 import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
@@ -39,6 +43,7 @@ import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
 import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
+import com.work.campvoiceus.viewmodels.ThreadsByTagViewModel
 
 @Composable
 fun AppNavHost(
@@ -150,6 +155,11 @@ fun AppNavHost(
                             navController.navigate("threadDetails/$threadId") {
                                 popUpTo("home") { saveState = true }
                             }
+                        },
+                        navigateToTag = { tag ->
+                            navController.navigate("tagThreads/$tag") {
+                                popUpTo("home") { saveState = true }
+                            }
                         }
                     )
                 }
@@ -172,6 +182,11 @@ fun AppNavHost(
                         },
                         navigateToThread = { threadId ->
                             navController.navigate("threadDetails/$threadId") {
+                                popUpTo("profile") { saveState = true }
+                            }
+                        },
+                        navigateToTag = { tag ->
+                            navController.navigate("tagThreads/$tag") {
                                 popUpTo("profile") { saveState = true }
                             }
                         }
@@ -221,10 +236,16 @@ fun AppNavHost(
                             navController.navigate("threadDetails/$threadId") {
                                 popUpTo("authorProfile/{userId}") { saveState = true }
                             }
+                        },
+                        navigateToTag = { tag ->
+                            navController.navigate("tagThreads/$tag") {
+                                popUpTo("authorProfile/{userId}") { saveState = true }
+                            }
                         }
                     )
                 }
 
+                // Thread Details screen
                 composable("threadDetails/{threadId}") { backStackEntry ->
                     val threadId = backStackEntry.arguments?.getString("threadId") ?: return@composable
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
@@ -244,9 +265,43 @@ fun AppNavHost(
                                     popUpTo("threadDetails/{threadId}") { inclusive = true }
                                 }
                             }
+                        },
+                        navigateToTag = { tag ->
+                            navController.navigate("tagThreads/$tag") {
+                                popUpTo("threadDetails/{threadId}") { inclusive = true }
+                            }
                         }
                     )
                 }
+
+                composable("tagThreads/{tag}") { backStackEntry ->
+                    val tag = backStackEntry.arguments?.getString("tag") ?: return@composable
+                    val viewModel = ThreadsByTagViewModel(tokenManager, tag)
+                    val voterListViewModel = VoterListViewModel(tokenManager, userService)
+
+                    TagThreadsScreen(
+                        tag = tag,
+                        viewModel = viewModel,
+                        voterListViewModel = voterListViewModel,
+                        navigateToThread = { threadId ->
+                            navController.navigate("threadDetails/$threadId") {
+                                popUpTo("tagThreads/{tag}") { inclusive = true }
+                            }
+                        },
+                        navigateToProfile = { authorId ->
+                            navController.navigate("authorProfile/$authorId") {
+                                popUpTo("tagThreads/{tag}") { inclusive = true }
+                            }
+                        },
+                        navigateToTag = { tag ->
+                            navController.navigate("tagThreads/$tag") {
+                                popUpTo("tagThreads/{tag}") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+
             }
         }
     }

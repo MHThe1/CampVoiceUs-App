@@ -1,5 +1,6 @@
 package com.work.campvoiceus.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,7 @@ fun ThreadCard(
     onVote: (String, String) -> Unit,
     navigateToThread: (String) -> Unit, // Navigate to ThreadDetailsScreen
     navigateToProfile: (String) -> Unit,
+    navigateToTag: (String) -> Unit,
     voterListViewModel: VoterListViewModel,
 ) {
     val (isVoterModalOpen, setVoterModalOpen) = remember { mutableStateOf(false) }
@@ -121,10 +123,13 @@ fun ThreadCard(
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .clickable { navigateToTag(thread.tags[index])
+                                Log.d("TagNavigation", "Tag clicked: ${thread.tags[index]}")} // Navigate to tag screen
                         )
                     }
                 }
             }
+
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,

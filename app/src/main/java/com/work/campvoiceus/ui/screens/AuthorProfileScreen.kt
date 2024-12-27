@@ -26,7 +26,8 @@ fun AuthorProfileScreen(
     threadsViewModel: AuthorThreadsViewModel,
     voterListViewModel: VoterListViewModel,
     navigateToThread: (String) -> Unit,
-    navigateToProfile: (String) -> Unit
+    navigateToProfile: (String) -> Unit,
+    navigateToTag: (String) -> Unit
 ) {
     val user by viewModel.user.collectAsState()
     val threads by threadsViewModel.userThreads.collectAsState(initial = emptyList())
@@ -142,6 +143,9 @@ fun AuthorProfileScreen(
                                     },
                                     navigateToProfile = { authorId ->
                                         navigateToProfile(authorId) // Navigate to the author profile
+                                    },
+                                    navigateToTag = { tag ->
+                                        navigateToTag(tag) // Navigate to the tag threads
                                     },
                                     voterListViewModel = voterListViewModel
                                 )

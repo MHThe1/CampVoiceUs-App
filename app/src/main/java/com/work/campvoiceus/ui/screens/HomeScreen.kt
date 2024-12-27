@@ -22,7 +22,8 @@ fun HomeScreen(
     viewModel: ThreadsViewModel,
     voterListViewModel: VoterListViewModel,
     navigateToProfile: (String) -> Unit,
-    navigateToThread: (String) -> Unit
+    navigateToThread: (String) -> Unit,
+    navigateToTag: (String) -> Unit,
 ) {
     val threads by viewModel.threads.collectAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
@@ -91,6 +92,11 @@ fun HomeScreen(
                             navigateToProfile = { authorId ->
                                 if (authorId.isNotEmpty()) {
                                     navigateToProfile(authorId)
+                                }
+                            },
+                            navigateToTag = { tag ->
+                                if (tag.isNotEmpty()) {
+                                    navigateToTag(tag)
                                 }
                             },
                             voterListViewModel = voterListViewModel

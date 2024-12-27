@@ -30,6 +30,7 @@ fun ProfileScreen(
     threadsViewModel: ProfileThreadsViewModel,
     voterListViewModel: VoterListViewModel,
     navigateToThread: (String) -> Unit,
+    navigateToTag: (String) -> Unit,
     onEditProfile: () -> Unit,
     navigateToProfile: (String) -> Unit
 ) {
@@ -160,6 +161,11 @@ fun ProfileScreen(
                                     navigateToProfile = { authorId ->
                                         if (authorId.isNotEmpty()) {
                                             navigateToProfile(authorId)
+                                        }
+                                    },
+                                    navigateToTag = { tag ->
+                                        if (tag.isNotEmpty()) {
+                                            navigateToTag(tag)
                                         }
                                     },
                                     voterListViewModel = voterListViewModel

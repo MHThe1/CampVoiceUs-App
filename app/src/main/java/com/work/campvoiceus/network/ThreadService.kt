@@ -3,6 +3,7 @@ package com.work.campvoiceus.network
 import com.work.campvoiceus.models.CommentResponse
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.models.ThreadResponse
+import com.work.campvoiceus.models.ThreadsByTagResponse
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -54,6 +55,11 @@ interface ThreadService {
         @Header("Authorization") token: String
     ): Response<ThreadResponse>
 
+    @GET("threads/filterbytag/{tag}")
+    suspend fun getThreadsByTag(
+        @Path("tag") tag: String,
+        @Header("Authorization") token: String
+    ): Response<ThreadsByTagResponse>
 
     @POST("threads/comment")
     suspend fun addComment(

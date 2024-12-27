@@ -25,7 +25,8 @@ fun ThreadDetailsScreen(
     commentsViewModel: CommentsViewModel,
     voterListViewModel: VoterListViewModel,
     navigateToProfile: (String) -> Unit,
-    navigateToThread: (String) -> Unit
+    navigateToThread: (String) -> Unit,
+    navigateToTag: (String) -> Unit
 ) {
     val thread by commentsViewModel.thread.collectAsState()
     val comments by commentsViewModel.comments.collectAsState(initial = emptyList())
@@ -84,6 +85,7 @@ fun ThreadDetailsScreen(
                             },
                             navigateToProfile = navigateToProfile,
                             navigateToThread = navigateToThread,
+                            navigateToTag = navigateToTag,
                             voterListViewModel = voterListViewModel
                         )
                         Spacer(modifier = Modifier.height(16.dp))

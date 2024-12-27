@@ -7,21 +7,19 @@ import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.utils.TokenManager
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.collections.map
 
 
-class ThreadsViewModel(
-    private val tokenManager: TokenManager
+class ThreadsByTagViewModel(
+    private val tokenManager: TokenManager,
+    private val tag: String
 ) : ViewModel() {
 
     private val _threads = MutableStateFlow<List<ThreadModel>>(emptyList())
     val threads: StateFlow<List<ThreadModel>> = _threads
-
-    private val _userThreads = MutableStateFlow<List<ThreadModel>>(emptyList())
-    val userThreads: StateFlow<List<ThreadModel>> = _userThreads
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -43,7 +41,7 @@ class ThreadsViewModel(
                 val response = userService.getUserProfile("Bearer $token")
                 if (response.isSuccessful) {
                     _currentUserId.value = response.body()?._id
-                    fetchThreads()
+                    fetchThreadsByTag()
                 } else {
                     _errorMessage.value = "Failed to fetch user ID"
                 }
@@ -53,15 +51,20 @@ class ThreadsViewModel(
         }
     }
 
-    fun fetchThreads() {
+
+    fun fetchThreadsByTag() {
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
+            Log.d("ThreadsViewModel", "Fetching threads for tag: $tag")
             try {
                 val token = tokenManager.getToken()
-                val threadsResponse = threadService.getThreads("Bearer $token") // Update API call if needed
+                Log.d("ThreadsViewModel", "Token: $token")
+                val threadsResponse = threadService.getThreadsByTag(tag, "Bearer $token")
+                Log.d("ThreadsViewModel", "Threads Response: $threadsResponse")
                 if (threadsResponse.isSuccessful) {
-                    val threads = threadsResponse.body() ?: emptyList()
+                    val responseBody = threadsResponse.body()
+                    val threads = responseBody?.threads ?: emptyList()
                     val threadsWithAuthorInfo = threads.map { thread ->
                         val authorResponse = userService.getUserById("Bearer $token", mapOf("id" to thread.authorId))
                         if (authorResponse.isSuccessful) {
@@ -76,31 +79,6 @@ class ThreadsViewModel(
                         }
                     }
                     _threads.value = threadsWithAuthorInfo
-                } else {
-                    _errorMessage.value = "Failed to fetch threads: ${threadsResponse.message()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Error fetching threads: ${e.localizedMessage}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-
-    fun fetchThreadsByTag(tag: String) {
-        _isLoading.value = true
-        _errorMessage.value = null
-        viewModelScope.launch {
-            Log.d("ThreadsViewModel", "Fetching threads for tag: $tag")
-            try {
-                val token = tokenManager.getToken()
-                Log.d("ThreadsViewModel", "Token: $token")
-                val threadsResponse = threadService.getThreadsByTag(tag, "Bearer $token")
-                Log.d("ThreadsViewModel", "Threads Response: $threadsResponse")
-                if (threadsResponse.isSuccessful) {
-                    val responseBody = threadsResponse.body()
-                    _threads.value = responseBody?.threads ?: emptyList()
                 } else {
                     _errorMessage.value = "Failed to fetch threads for tag #$tag: ${threadsResponse.message()}"
                 }
