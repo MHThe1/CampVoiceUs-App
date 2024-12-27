@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1052041251379",
+    "project_id": "campvoiceus",
+    "storage_bucket": "campvoiceus.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1052041251379:android:b387aef631a69915563146",
+        "android_client_info": {
+          "package_name": "com.work.campvoiceus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxObGAgvVGCsFyLrMdu-WuLq_KU5RAKCA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
