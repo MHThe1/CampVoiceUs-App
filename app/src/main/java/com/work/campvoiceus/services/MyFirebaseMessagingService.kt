@@ -19,11 +19,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Handle notification
-        remoteMessage.notification?.let {
-            showNotification(it.title, it.body)
+        // Check for notification data
+        val threadId = remoteMessage.data["threadId"]
+
+        // If threadId exists, show a notification that navigates to threadDetails/{threadId}
+        if (threadId != null) {
+            showNotification(remoteMessage.notification?.title, remoteMessage.notification?.body, threadId)
         }
     }
+
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -45,29 +49,28 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // Use Retrofit, Volley, or other networking library to send this to your backend
     }
 
-    private fun showNotification(title: String?, message: String?) {
+    private fun showNotification(title: String?, message: String?, threadId: String) {
         val channelId = "default_channel_id"
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create a notification channel for Android O and above
+        // Create notification channel for Android 8.0+ (Oreo)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId,
-                "Default Channel",
-                NotificationManager.IMPORTANCE_HIGH
+                channelId, "Default Channel", NotificationManager.IMPORTANCE_HIGH
             )
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Create an intent to open MainActivity when the notification is clicked
+        // Create an Intent to launch MainActivity and pass threadId
         val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("threadId", threadId)
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // Build and show the notification
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle(title)
             .setContentText(message)
@@ -78,4 +81,5 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         notificationManager.notify(0, notification)
     }
+
 }
