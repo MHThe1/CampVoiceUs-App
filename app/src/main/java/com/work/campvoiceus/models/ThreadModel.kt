@@ -11,6 +11,7 @@ data class ThreadModel(
     val comments: List<CommentModel>,
     val upvotes: List<String>,
     val downvotes: List<String>,
+    val tags: List<String>,
     val createdAt: String,
     val __v: Int
 )

@@ -1,9 +1,6 @@
 package com.work.campvoiceus.network
 
-import com.work.campvoiceus.models.ApiResponse
-import com.work.campvoiceus.models.CommentModel
 import com.work.campvoiceus.models.CommentResponse
-import com.work.campvoiceus.models.CreateThreadRequest
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.models.ThreadResponse
 import okhttp3.RequestBody
@@ -23,7 +20,8 @@ interface ThreadService {
     suspend fun createThread(
         @Header("Authorization") token: String,
         @Part("title") title: RequestBody,
-        @Part("content") content: RequestBody
+        @Part("content") content: RequestBody,
+        @Part("tags") tags: RequestBody
     ): Response<Unit>
 
     // Update this endpoint to match your backend's API

@@ -1,8 +1,11 @@
 package com.work.campvoiceus.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.ArrowCircleUp
@@ -14,7 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.work.campvoiceus.models.ThreadModel
@@ -38,10 +43,10 @@ fun ThreadCard(
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(2.dp),
+            .fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RectangleShape
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -80,11 +85,14 @@ fun ThreadCard(
                 TimeDisplay(thread.createdAt)
             }
 
+            // Title with Navigation
             Text(
                 text = thread.title,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 8.dp)
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.primary, // Highlight with primary color
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .clickable { navigateToThread(thread._id) } // Navigate to thread details
             )
 
             Text(
@@ -93,6 +101,30 @@ fun ThreadCard(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+
+            // Tags Display
+            if (thread.tags.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(thread.tags.size) { index ->
+                        Text(
+                            text = "#${thread.tags[index]}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -177,6 +209,8 @@ fun ThreadCard(
         }
     }
 }
+
+
 
 
 @Composable

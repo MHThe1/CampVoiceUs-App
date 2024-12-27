@@ -25,7 +25,7 @@ class CreateThreadViewModel(
     private val _isSuccess = MutableStateFlow(false)
     val isSuccess: StateFlow<Boolean> = _isSuccess
 
-    fun createThread(title: String, content: String, context: Context) {
+    fun createThread(title: String, content: String, tags: String, context: Context) {
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
@@ -39,11 +39,14 @@ class CreateThreadViewModel(
 
                 val titleRequestBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
                 val contentRequestBody = content.toRequestBody("text/plain".toMediaTypeOrNull())
+                val tagsRequestBody = tags.split(",").map { it.trim() }
+                    .joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
 
                 val response = threadService.createThread(
                     token = "Bearer $token",
                     title = titleRequestBody,
-                    content = contentRequestBody
+                    content = contentRequestBody,
+                    tags = tagsRequestBody // Add tags to the request
                 )
 
                 if (response.isSuccessful) {
@@ -59,5 +62,6 @@ class CreateThreadViewModel(
             }
         }
     }
+
 
 }
