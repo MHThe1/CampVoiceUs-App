@@ -61,4 +61,11 @@ interface UserService {
         @Header("Authorization") token: String,
         @Body idMap: Map<String, String> // Key "id" maps to the user ID
     ): Response<User>
+
+    @POST("users/savefcmtoken")
+    suspend fun updateFcmToken(
+        @Header("Authorization") token: String,
+        @Body fcmTokenData: Map<String, String>
+    ): Response<Void>
+
 }

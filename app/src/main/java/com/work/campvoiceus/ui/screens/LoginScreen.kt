@@ -8,16 +8,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.work.campvoiceus.utils.TokenManager
 import com.work.campvoiceus.viewmodels.LoginState
 import com.work.campvoiceus.viewmodels.LoginViewModel
+import com.work.campvoiceus.viewmodels.LoginViewModelFactory
 
 @Composable
 fun LoginScreen(
+    tokenManager: TokenManager,
     onLoginSuccess: (String) -> Unit, // Callback for successful login
     onNavigateToRegister: () -> Unit // Callback for navigating to the registration page
 ) {
-    val viewModel: LoginViewModel = viewModel() // ViewModel for handling login logic
-    val loginState by viewModel.loginState.collectAsState() // Observe login state
+    val factory = LoginViewModelFactory(tokenManager)
+    val viewModel: LoginViewModel = viewModel(factory = factory)
+
+    // Observe login state from the ViewModel
+    val loginState by viewModel.loginState.collectAsState()
 
     var identifier by remember { mutableStateOf("") } // User input for email/username
     var password by remember { mutableStateOf("") } // User input for password
