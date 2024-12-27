@@ -8,7 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.work.campvoiceus.navigation.AppNavHost
@@ -29,9 +29,11 @@ class MainActivity : ComponentActivity() {
         val tokenManager = TokenManager(applicationContext)
         tokenManager.fetchAndSaveFcmToken()
 
+        val threadId = intent?.getStringExtra("threadId")
+
         setContent {
             CampVoiceUsTheme {
-                MainApp()
+                MainApp(threadId)
             }
         }
     }
@@ -60,26 +62,20 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainApp() {
+fun MainApp(threadId: String?) {
     val navController = rememberNavController()
     val tokenManager = TokenManager(navController.context)
     val savedToken = tokenManager.getToken()
 
-    val startDestination = if (savedToken.isNullOrEmpty()) "login" else "home"
+    LaunchedEffect(threadId) {
+        if (!threadId.isNullOrEmpty()) {
+            navController.navigate("threadDetails/$threadId")
+        }
+    }
 
     AppNavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = if (savedToken.isNullOrEmpty()) "login" else "home",
         tokenManager = tokenManager
     )
-}
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun MainAppPreview() {
-    CampVoiceUsTheme() {
-        MainApp()
-    }
 }
