@@ -4,6 +4,7 @@ import com.work.campvoiceus.models.CommentResponse
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.models.ThreadResponse
 import com.work.campvoiceus.models.ThreadsByTagResponse
+import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -22,8 +23,9 @@ interface ThreadService {
         @Header("Authorization") token: String,
         @Part("title") title: RequestBody,
         @Part("content") content: RequestBody,
-        @Part("tags") tags: RequestBody
-    ): Response<Unit>
+        @Part("tags") tags: RequestBody? = null,
+        @Part file: MultipartBody.Part? = null
+    ): Response<Void>
 
     // Update this endpoint to match your backend's API
     @POST("threads/homethreads")

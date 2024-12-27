@@ -1,6 +1,8 @@
 package com.work.campvoiceus.viewmodels
 
 import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +12,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
+import java.io.FileOutputStream
 
 class CreateThreadViewModel(
     private val tokenManager: TokenManager
@@ -25,7 +31,7 @@ class CreateThreadViewModel(
     private val _isSuccess = MutableStateFlow(false)
     val isSuccess: StateFlow<Boolean> = _isSuccess
 
-    fun createThread(title: String, content: String, tags: String, context: Context) {
+    fun createThread(title: String, content: String, tags: String, fileUri: Uri?, context: Context) {
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
@@ -39,14 +45,41 @@ class CreateThreadViewModel(
 
                 val titleRequestBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
                 val contentRequestBody = content.toRequestBody("text/plain".toMediaTypeOrNull())
-                val tagsRequestBody = tags.split(",").map { it.trim() }
-                    .joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
+                val tagsRequestBody = if (tags.isNotBlank()) {
+                    tags.split(",").map { it.trim() }
+                        .joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
+                } else {
+                    null
+                }
+
+                val contentResolver = context.contentResolver
+                val filePart = fileUri?.let { uri ->
+                    val inputStream = contentResolver.openInputStream(uri)
+                    val tempFile = File.createTempFile("thread_file", null, context.cacheDir)
+                    inputStream?.use { input ->
+                        FileOutputStream(tempFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+
+                    val fileName = contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                        if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                        else "unknown_file"
+                    } ?: tempFile.name
+
+                    MultipartBody.Part.createFormData(
+                        name = "file",
+                        filename = fileName,
+                        body = tempFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                    )
+                }
 
                 val response = threadService.createThread(
                     token = "Bearer $token",
                     title = titleRequestBody,
                     content = contentRequestBody,
-                    tags = tagsRequestBody // Add tags to the request
+                    tags = tagsRequestBody,
+                    file = filePart
                 )
 
                 if (response.isSuccessful) {
@@ -62,6 +95,5 @@ class CreateThreadViewModel(
             }
         }
     }
-
 
 }

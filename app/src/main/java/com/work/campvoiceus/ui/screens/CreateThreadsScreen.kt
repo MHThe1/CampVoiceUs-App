@@ -1,5 +1,9 @@
 package com.work.campvoiceus.ui.screens
 
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,7 +23,7 @@ import com.work.campvoiceus.viewmodels.CreateThreadViewModel
 @Composable
 fun CreateThreadScreen(
     viewModel: CreateThreadViewModel = viewModel(),
-    onThreadCreated: () -> Unit // Callback when thread is successfully created
+    onThreadCreated: () -> Unit
 ) {
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -28,10 +32,20 @@ fun CreateThreadScreen(
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var tagInput by remember { mutableStateOf("") }
-    val tags = remember { mutableStateListOf<String>() } // Use mutableStateListOf for reactivity
+    val tags = remember { mutableStateListOf<String>() }
+    var fileUri by remember { mutableStateOf<Uri?>(null) }
+
+    // File picker launcher
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        fileUri = uri
+    }
+
+    val context = LocalContext.current
 
     if (isSuccess) {
-        onThreadCreated() // Navigate to another screen or show success message
+        onThreadCreated()
     }
 
     Column(
@@ -84,7 +98,7 @@ fun CreateThreadScreen(
                 items(tags.size) { index ->
                     Chip(
                         text = "#${tags[index]}",
-                        onRemove = { tags.removeAt(index) } // Remove tag by index
+                        onRemove = { tags.removeAt(index) }
                     )
                 }
             }
@@ -100,19 +114,37 @@ fun CreateThreadScreen(
                     if (newTag.isNotBlank() && !tags.contains(newTag)) {
                         tags.add(newTag)
                     }
-                    tagInput = "" // Clear input after adding
+                    tagInput = ""
                 }
             },
-            label = { Text("Add Tags") },
+            label = { Text("Add Tags (comma separated)") },
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // File Picker
+        Button(
+            onClick = { filePickerLauncher.launch("*/*") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 80.dp, end = 80.dp)
+        ) {
+            Text(text = "Choose File")
+        }
+
+        if (fileUri != null) {
+            val fileName = context.contentResolver.query(fileUri!!, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                else "unknown_file"
+            }
+            Text(text = "File selected: $fileName")
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        val context = LocalContext.current
-
         Button(
-            onClick = { viewModel.createThread(title, content, tags.joinToString(","), context) },
+            onClick = { viewModel.createThread(title, content, tags.joinToString(","), fileUri, context) },
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -124,6 +156,9 @@ fun CreateThreadScreen(
         }
     }
 }
+
+
+
 
 @Composable
 fun Chip(text: String, onRemove: () -> Unit) {
