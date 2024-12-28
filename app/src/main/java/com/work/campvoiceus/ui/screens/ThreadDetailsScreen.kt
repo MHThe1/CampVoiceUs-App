@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.work.campvoiceus.ui.components.CommentCard
 import com.work.campvoiceus.ui.components.ThreadCard
@@ -61,7 +60,6 @@ fun ThreadDetailsScreen(
         .padding(top = 8.dp, start = 3.dp, end = 3.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Main content
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),

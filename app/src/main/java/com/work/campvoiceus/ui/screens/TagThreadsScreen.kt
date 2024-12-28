@@ -28,46 +28,58 @@ fun TagThreadsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-
     Box(modifier = Modifier.fillMaxSize()) {
-        when {
-            isLoading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = "#$tag",
+                style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.primary),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            when {
+                isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-            !errorMessage.isNullOrEmpty() -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = errorMessage ?: "Unknown error", color = MaterialTheme.colorScheme.error)
-                }
-            }
-            threads.isEmpty() -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "No threads found for #$tag")
-                }
-            }
-            else -> {
-                LazyColumn {
-                    items(threads) { thread ->
-                        ThreadCard(
-                            thread = thread,
-                            currentUserId = viewModel.currentUserId.value ?: "",
-                            onVote = { threadId, voteType ->
-                                viewModel.handleVote(threadId, voteType)
-                            },
-                            navigateToThread = { threadId ->
-                                navigateToThread(threadId)
-                            },
-                            navigateToProfile = { authorId ->
-                                navigateToProfile(authorId)
-                            },
-                            navigateToTag = { tag ->
-                                navigateToTag(tag)
-                            },
-                            voterListViewModel = voterListViewModel,
-                            fileDownloadViewModel = fileDownloadViewModel
+                !errorMessage.isNullOrEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = errorMessage ?: "Unknown error",
+                            color = MaterialTheme.colorScheme.error
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+                threads.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = "No threads found for #$tag")
+                    }
+                }
+                else -> {
+                    LazyColumn {
+                        items(threads) { thread ->
+                            ThreadCard(
+                                thread = thread,
+                                currentUserId = viewModel.currentUserId.value ?: "",
+                                onVote = { threadId, voteType ->
+                                    viewModel.handleVote(threadId, voteType)
+                                },
+                                navigateToThread = { threadId ->
+                                    navigateToThread(threadId)
+                                },
+                                navigateToProfile = { authorId ->
+                                    navigateToProfile(authorId)
+                                },
+                                navigateToTag = { newTag ->
+                                    navigateToTag(newTag)
+                                },
+                                voterListViewModel = voterListViewModel,
+                                fileDownloadViewModel = fileDownloadViewModel
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
             }
