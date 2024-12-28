@@ -21,28 +21,9 @@ import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.ui.components.BottomNavigationBar
 import com.work.campvoiceus.ui.components.TopBar
-import com.work.campvoiceus.ui.screens.AuthorProfileScreen
-import com.work.campvoiceus.ui.screens.CreateThreadScreen
-import com.work.campvoiceus.ui.screens.EditProfileScreen
-import com.work.campvoiceus.ui.screens.HomeScreen
-import com.work.campvoiceus.ui.screens.LoginScreen
-import com.work.campvoiceus.ui.screens.NotificationsScreen
-import com.work.campvoiceus.ui.screens.ProfileScreen
-import com.work.campvoiceus.ui.screens.RegisterScreen
-import com.work.campvoiceus.ui.screens.TagThreadsScreen
-import com.work.campvoiceus.ui.screens.ThreadDetailsScreen
+import com.work.campvoiceus.ui.screens.*
 import com.work.campvoiceus.utils.TokenManager
-import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
-import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
-import com.work.campvoiceus.viewmodels.CommentsViewModel
-import com.work.campvoiceus.viewmodels.CreateThreadViewModel
-import com.work.campvoiceus.viewmodels.FileDownloadViewModel
-import com.work.campvoiceus.viewmodels.NotificationsViewModel
-import com.work.campvoiceus.viewmodels.ThreadsViewModel
-import com.work.campvoiceus.viewmodels.ProfileEditViewModel
-import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
-import com.work.campvoiceus.viewmodels.ProfileViewModel
-import com.work.campvoiceus.viewmodels.ThreadsByTagViewModel
+import com.work.campvoiceus.viewmodels.*
 
 @Composable
 fun AppNavHost(
@@ -55,7 +36,6 @@ fun AppNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Log the current route
     LaunchedEffect(currentRoute) {
         currentRoute?.let { route ->
             Log.d("Navigation", "Current route: $route")
@@ -71,10 +51,7 @@ fun AppNavHost(
 
         Scaffold(
             topBar = {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
-                if (currentRoute != "login" && currentRoute != "register") {
+                if (currentRoute !in listOf("login", "register")) {
                     TopBar(
                         onNavigateToHome = {
                             navController.navigate("home") {
@@ -91,9 +68,7 @@ fun AppNavHost(
                 }
             },
             bottomBar = {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-                if (currentRoute != "login" && currentRoute != "register") {
+                if (currentRoute !in listOf("login", "register")) {
                     BottomNavigationBar(navController)
                 }
             }
@@ -105,12 +80,9 @@ fun AppNavHost(
             ) {
                 // Login Screen
                 composable("login") {
-                    val context = LocalContext.current
-                    val tokenManager = TokenManager(context)
-
                     LoginScreen(
                         tokenManager = tokenManager,
-                        onLoginSuccess = { token ->
+                        onLoginSuccess = {
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
@@ -120,7 +92,6 @@ fun AppNavHost(
                         }
                     )
                 }
-
 
                 // Register Screen
                 composable("register") {
@@ -140,14 +111,13 @@ fun AppNavHost(
 
                 // Home Screen
                 composable("home") {
-                    val context = LocalContext.current
-                    val tokenManager = TokenManager(context)
-                    val viewModel = ThreadsViewModel(tokenManager, context = context)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val fileDownloadViewModel = FileDownloadViewModel()
+                    val context = LocalContext.current
                     HomeScreen(
-                        viewModel = viewModel,
+                        viewModel = ThreadsViewModel(tokenManager, context),
                         voterListViewModel = voterListViewModel,
+                        fileDownloadViewModel = fileDownloadViewModel,
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
                                 popUpTo("home") { saveState = true }
@@ -162,22 +132,18 @@ fun AppNavHost(
                             navController.navigate("tagThreads/$tag") {
                                 popUpTo("home") { saveState = true }
                             }
-                        },
-                        fileDownloadViewModel = fileDownloadViewModel
+                        }
                     )
                 }
 
-
                 // Profile Screen
                 composable("profile") {
-                    val context = LocalContext.current
-                    val viewModel = ProfileViewModel(tokenManager, context)
-                    val threadsViewModel = ProfileThreadsViewModel(tokenManager, context)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val fileDownloadViewModel = FileDownloadViewModel()
+                    val context = LocalContext.current
                     ProfileScreen(
-                        viewModel = viewModel,
-                        threadsViewModel = threadsViewModel,
+                        viewModel = ProfileViewModel(tokenManager, context),
+                        threadsViewModel = ProfileThreadsViewModel(tokenManager, context),
                         voterListViewModel = voterListViewModel,
                         fileDownloadViewModel = fileDownloadViewModel,
                         onEditProfile = { navController.navigate("editProfile") },
@@ -201,9 +167,8 @@ fun AppNavHost(
 
                 // Edit Profile Screen
                 composable("editProfile") {
-                    val viewModel = ProfileEditViewModel(tokenManager)
                     EditProfileScreen(
-                        viewModel = viewModel,
+                        viewModel = ProfileEditViewModel(tokenManager),
                         onProfileUpdated = {
                             navController.navigate("profile") {
                                 popUpTo("editProfile") { inclusive = true }
@@ -214,8 +179,9 @@ fun AppNavHost(
 
                 // Create Thread Screen
                 composable("createThread") {
-                    val viewModel = CreateThreadViewModel(tokenManager)
-                    CreateThreadScreen(viewModel = viewModel) {
+                    CreateThreadScreen(
+                        viewModel = CreateThreadViewModel(tokenManager)
+                    ) {
                         navController.navigate("home") {
                             popUpTo("createThread") { inclusive = true }
                         }
@@ -225,15 +191,15 @@ fun AppNavHost(
                 // Author Profile Screen
                 composable("authorProfile/{userId}") { backStackEntry ->
                     val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
-                    val viewModel = AuthorProfileViewModel(tokenManager, userId)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val authorThreadsViewModel = AuthorThreadsViewModel(tokenManager, userId)
                     val fileDownloadViewModel = FileDownloadViewModel()
 
                     AuthorProfileScreen(
-                        viewModel = viewModel,
+                        viewModel = AuthorProfileViewModel(tokenManager, userId),
                         threadsViewModel = authorThreadsViewModel,
                         voterListViewModel = voterListViewModel,
+                        fileDownloadViewModel = fileDownloadViewModel,
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
                                 popUpTo("authorProfile/{userId}") { saveState = true }
@@ -248,12 +214,11 @@ fun AppNavHost(
                             navController.navigate("tagThreads/$tag") {
                                 popUpTo("authorProfile/{userId}") { saveState = true }
                             }
-                        },
-                        fileDownloadViewModel = fileDownloadViewModel
+                        }
                     )
                 }
 
-                // Thread Details screen
+                // Thread Details Screen
                 composable("threadDetails/{threadId}") { backStackEntry ->
                     val threadId = backStackEntry.arguments?.getString("threadId") ?: return@composable
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
@@ -278,58 +243,54 @@ fun AppNavHost(
                         },
                         navigateToTag = { tag ->
                             navController.navigate("tagThreads/$tag") {
-                                popUpTo("threadDetails/{threadId}") { inclusive = true }
+                                popUpTo("threadDetails/{threadId}") { saveState = true }
                             }
                         }
                     )
                 }
 
+                // Tag Threads Screen
                 composable("tagThreads/{tag}") { backStackEntry ->
                     val tag = backStackEntry.arguments?.getString("tag") ?: return@composable
-                    val viewModel = ThreadsByTagViewModel(tokenManager, tag)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val fileDownloadViewModel = FileDownloadViewModel()
 
                     TagThreadsScreen(
                         tag = tag,
-                        viewModel = viewModel,
+                        viewModel = ThreadsByTagViewModel(tokenManager, tag),
                         voterListViewModel = voterListViewModel,
                         fileDownloadViewModel = fileDownloadViewModel,
                         navigateToThread = { threadId ->
                             navController.navigate("threadDetails/$threadId") {
-                                popUpTo("tagThreads/{tag}") { inclusive = true }
+                                popUpTo("tagThreads/{tag}") { saveState = true }
                             }
                         },
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
-                                popUpTo("tagThreads/{tag}") { inclusive = true }
+                                popUpTo("tagThreads/{tag}") { saveState = true }
                             }
                         },
-                        navigateToTag = { tag ->
-                            navController.navigate("tagThreads/$tag") {
-                                popUpTo("tagThreads/{tag}") { inclusive = true }
+                        navigateToTag = { newTag ->
+                            navController.navigate("tagThreads/$newTag") {
+                                popUpTo("tagThreads/{tag}") { saveState = true }
                             }
                         }
                     )
                 }
 
+                // Notifications Screen
                 composable("notifications") {
                     val context = LocalContext.current
-                    val viewModel = NotificationsViewModel(tokenManager, context)
                     NotificationsScreen(
-                        viewModel = viewModel,
+                        viewModel = NotificationsViewModel(tokenManager, context),
                         navigateToThread = { threadId ->
                             navController.navigate("threadDetails/$threadId") {
-                                popUpTo("notifications") { inclusive = true }
+                                popUpTo("notifications") { saveState = true }
                             }
                         }
                     )
                 }
-
-
-
             }
         }
     }
 }
-
