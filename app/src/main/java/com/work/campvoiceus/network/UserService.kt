@@ -1,9 +1,9 @@
 package com.work.campvoiceus.network
 
 
-import com.work.campvoiceus.models.ApiResponse
 import com.work.campvoiceus.models.LoginRequest
 import com.work.campvoiceus.models.LoginResponse
+import com.work.campvoiceus.models.NotificationResponse
 import com.work.campvoiceus.models.RegisterRequest
 import com.work.campvoiceus.models.RegisterResponse
 import com.work.campvoiceus.models.User
@@ -67,5 +67,11 @@ interface UserService {
         @Header("Authorization") token: String,
         @Body fcmTokenData: Map<String, String>
     ): Response<Void>
+
+    @GET("users/notifications")
+    suspend fun getNotifications(
+        @Header("Authorization") token: String
+    ): Response<NotificationResponse>
+
 
 }

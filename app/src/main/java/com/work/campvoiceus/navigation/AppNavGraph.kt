@@ -13,13 +13,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.navArgument
 import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.ui.components.BottomNavigationBar
@@ -29,6 +26,7 @@ import com.work.campvoiceus.ui.screens.CreateThreadScreen
 import com.work.campvoiceus.ui.screens.EditProfileScreen
 import com.work.campvoiceus.ui.screens.HomeScreen
 import com.work.campvoiceus.ui.screens.LoginScreen
+import com.work.campvoiceus.ui.screens.NotificationsScreen
 import com.work.campvoiceus.ui.screens.ProfileScreen
 import com.work.campvoiceus.ui.screens.RegisterScreen
 import com.work.campvoiceus.ui.screens.TagThreadsScreen
@@ -39,13 +37,12 @@ import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
 import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.CreateThreadViewModel
 import com.work.campvoiceus.viewmodels.FileDownloadViewModel
-import com.work.campvoiceus.viewmodels.LoginViewModel
+import com.work.campvoiceus.viewmodels.NotificationsViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
 import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 import com.work.campvoiceus.viewmodels.ThreadsByTagViewModel
-import kotlin.concurrent.thread
 
 @Composable
 fun AppNavHost(
@@ -312,6 +309,19 @@ fun AppNavHost(
                         }
                     )
                 }
+
+                composable("notifications") {
+                    val viewModel = NotificationsViewModel(tokenManager)
+                    NotificationsScreen(
+                        viewModel = viewModel,
+                        navigateToThread = { threadId ->
+                            navController.navigate("threadDetails/$threadId") {
+                                popUpTo("notifications") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
 
 
             }

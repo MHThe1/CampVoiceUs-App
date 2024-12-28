@@ -28,16 +28,14 @@ data class EditProfileData(
     var avatarUrl: String? = null // File paths or URLs
 )
 
-
-data class UserResponse(val name: String, val avatarUrl: String?, val username: String, val email: String)
-
-data class ApiResponse<T>(
-    val success: Boolean,
+data class NotificationModel(
+    val _id: String,
+    val title: String,
     val message: String,
-    val data: T
+    val threadId: String?,
+    val createdAt: String
 )
 
-data class CreateThreadRequest(
-    val title: String,
-    val content: String
+data class NotificationResponse(
+    val notifications: List<NotificationModel>
 )
