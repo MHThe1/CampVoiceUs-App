@@ -3,12 +3,10 @@ package com.work.campvoiceus.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,6 +14,8 @@ import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
+
+import androidx.compose.runtime.getValue
 
 @Composable
 fun HomeScreen(
@@ -32,30 +32,25 @@ fun HomeScreen(
     val currentUserId by viewModel.currentUserId.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    var isFabLoading by remember { mutableStateOf(false) } // Loading state for FAB
 
-    // Display the snackbar if there's an error message
-    LaunchedEffect(errorMessage) {
-        viewModel.fetchThreads()
-        if (!errorMessage.isNullOrEmpty()) {
-            snackbarHostState.showSnackbar(
-                message = errorMessage!!,
-                actionLabel = "Dismiss",
-                duration = SnackbarDuration.Short
-            )
-            viewModel.clearErrorMessage() // Clear the error after showing the snackbar
+    // Load threads on first launch
+    LaunchedEffect(Unit) {
+        if (threads.isEmpty()) {
+            viewModel.fetchThreads()
         }
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
+            .padding(4.dp)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
             when {
-                isLoading -> {
+                isLoading && threads.isEmpty() -> {
                     item {
                         Box(
                             modifier = Modifier
@@ -103,18 +98,54 @@ fun HomeScreen(
                             voterListViewModel = voterListViewModel,
                             fileDownloadViewModel = fileDownloadViewModel
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
+            }
+        }
+
+        // Floating Action Button for manual refresh
+        FloatingActionButton(
+            onClick = {
+                isFabLoading = true // Set loading state
+                viewModel.fetchThreads() // Trigger data fetch
+                isFabLoading = false // Reset loading state
+            },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            if (isFabLoading || isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh Threads"
+                )
             }
         }
 
         // SnackbarHost to display snackbar messages
         SnackbarHost(
             hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter) // Position the snackbar at the bottom
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
+
+        // Handle errors via Snackbar
+        if (!errorMessage.isNullOrEmpty()) {
+            LaunchedEffect(errorMessage) {
+                snackbarHostState.showSnackbar(
+                    message = errorMessage ?: "Unknown error",
+                    actionLabel = "Dismiss",
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.clearErrorMessage()
+            }
+        }
     }
 }
 

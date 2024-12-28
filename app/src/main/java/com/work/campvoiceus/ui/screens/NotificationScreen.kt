@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.ExposureNeg1
 import androidx.compose.material.icons.filled.ExposurePlus1
 import androidx.compose.material.icons.filled.ModeComment
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
@@ -34,25 +35,83 @@ fun NotificationsScreen(
     val notifications by viewModel.notifications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    var isFabLoading by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (isLoading) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator()
-            }
-        } else if (!errorMessage.isNullOrEmpty()) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                Text(text = errorMessage ?: "", color = MaterialTheme.colorScheme.error)
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(notifications) { notification ->
-                    NotificationCard(notification, navigateToThread)
+    // Load notifications in the background if no cached data
+    LaunchedEffect(Unit) {
+        if (notifications.isEmpty()) {
+            viewModel.fetchNotifications()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(4.dp)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            when {
+                isLoading && notifications.isEmpty() -> {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
                 }
+                notifications.isEmpty() && errorMessage == null -> {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "No notifications available.")
+                        }
+                    }
+                }
+                else -> {
+                    items(notifications) { notification ->
+                        NotificationCard(notification, navigateToThread)
+                    }
+                }
+            }
+        }
+
+        // Floating Action Button for refresh
+        FloatingActionButton(
+            onClick = {
+                isFabLoading = true
+                viewModel.fetchNotifications()
+                isFabLoading = false
+            },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            if (isFabLoading || isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh Notifications"
+                )
             }
         }
     }
 }
+
+
 
 @Composable
 fun NotificationCard(

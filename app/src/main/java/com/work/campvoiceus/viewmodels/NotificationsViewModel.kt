@@ -1,18 +1,24 @@
 package com.work.campvoiceus.viewmodels
 
-import android.util.Log
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.work.campvoiceus.models.NotificationModel
 import com.work.campvoiceus.network.RetrofitInstance.userService
+import com.work.campvoiceus.utils.NotificationCacheManager
 import com.work.campvoiceus.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class NotificationsViewModel(private val tokenManager: TokenManager) : ViewModel() {
+class NotificationsViewModel(
+    private val tokenManager: TokenManager,
+    context: Context
+) : ViewModel() {
 
-    private val _notifications = MutableStateFlow<List<NotificationModel>>(emptyList())
+    private val notificationCacheManager = NotificationCacheManager(context)
+
+    private val _notifications = MutableStateFlow<List<NotificationModel>>(notificationCacheManager.getNotifications()) // Load from cache
     val notifications: StateFlow<List<NotificationModel>> = _notifications
 
     private val _isLoading = MutableStateFlow(false)
@@ -20,10 +26,6 @@ class NotificationsViewModel(private val tokenManager: TokenManager) : ViewModel
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
-
-    init {
-        fetchNotifications()
-    }
 
     fun fetchNotifications() {
         _isLoading.value = true
@@ -39,9 +41,11 @@ class NotificationsViewModel(private val tokenManager: TokenManager) : ViewModel
 
                 val response = userService.getNotifications("Bearer $token")
                 if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    Log.d("NotificationsViewModel", "Response: ${responseBody?.notifications}")
-                    _notifications.value = responseBody?.notifications ?: emptyList()
+                    val notifications = response.body()?.notifications ?: emptyList()
+                    _notifications.value = notifications
+
+                    // Save notifications to local storage
+                    notificationCacheManager.saveNotifications(notifications)
                 } else {
                     _errorMessage.value = "Failed to fetch notifications: ${response.message()}"
                 }
@@ -51,5 +55,9 @@ class NotificationsViewModel(private val tokenManager: TokenManager) : ViewModel
                 _isLoading.value = false
             }
         }
+    }
+
+    fun clearCachedNotifications() {
+        notificationCacheManager.clearNotifications()
     }
 }

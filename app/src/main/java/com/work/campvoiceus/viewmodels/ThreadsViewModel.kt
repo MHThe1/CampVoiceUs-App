@@ -1,10 +1,13 @@
 package com.work.campvoiceus.viewmodels
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
+import com.work.campvoiceus.utils.ThreadCacheManager
 import com.work.campvoiceus.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,14 +15,14 @@ import kotlinx.coroutines.launch
 
 
 class ThreadsViewModel(
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    context: Context
 ) : ViewModel() {
 
-    private val _threads = MutableStateFlow<List<ThreadModel>>(emptyList())
-    val threads: StateFlow<List<ThreadModel>> = _threads
+    private val threadCacheManager = ThreadCacheManager(context)
 
-    private val _userThreads = MutableStateFlow<List<ThreadModel>>(emptyList())
-    val userThreads: StateFlow<List<ThreadModel>> = _userThreads
+    private val _threads = MutableStateFlow<List<ThreadModel>>(threadCacheManager.getThreads()) // Load from cache
+    val threads: StateFlow<List<ThreadModel>> = _threads
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -55,9 +58,11 @@ class ThreadsViewModel(
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
+            Log.d("ThreadsViewModel", "Fetching threads")
             try {
                 val token = tokenManager.getToken()
-                val threadsResponse = threadService.getThreads("Bearer $token") // Update API call if needed
+                val threadsResponse = threadService.getThreads("Bearer $token") // API call
+                Log.d("ThreadsViewModel", "Threads Response: $threadsResponse")
                 if (threadsResponse.isSuccessful) {
                     val threads = threadsResponse.body() ?: emptyList()
                     val threadsWithAuthorInfo = threads.map { thread ->
@@ -74,6 +79,10 @@ class ThreadsViewModel(
                         }
                     }
                     _threads.value = threadsWithAuthorInfo
+
+                    // Save threads to local storage
+                    threadCacheManager.saveThreads(threadsWithAuthorInfo)
+                    Log.d("ThreadsViewModel", "Threads updated: ${threadsWithAuthorInfo.size} items")
                 } else {
                     _errorMessage.value = "Failed to fetch threads: ${threadsResponse.message()}"
                 }
@@ -83,6 +92,10 @@ class ThreadsViewModel(
                 _isLoading.value = false
             }
         }
+    }
+
+    fun clearCachedThreads() {
+        threadCacheManager.clearThreads()
     }
 
 

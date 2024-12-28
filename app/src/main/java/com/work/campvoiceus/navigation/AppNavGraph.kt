@@ -140,7 +140,9 @@ fun AppNavHost(
 
                 // Home Screen
                 composable("home") {
-                    val viewModel = ThreadsViewModel(tokenManager)
+                    val context = LocalContext.current
+                    val tokenManager = TokenManager(context)
+                    val viewModel = ThreadsViewModel(tokenManager, context = context)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val fileDownloadViewModel = FileDownloadViewModel()
                     HomeScreen(
@@ -311,7 +313,8 @@ fun AppNavHost(
                 }
 
                 composable("notifications") {
-                    val viewModel = NotificationsViewModel(tokenManager)
+                    val context = LocalContext.current
+                    val viewModel = NotificationsViewModel(tokenManager, context)
                     NotificationsScreen(
                         viewModel = viewModel,
                         navigateToThread = { threadId ->
