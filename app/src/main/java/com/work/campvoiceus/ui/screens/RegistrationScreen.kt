@@ -34,6 +34,14 @@ fun RegisterScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.Center
     ) {
+        Text(
+            text = "campvoiceus",
+            style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .align(CenterHorizontally)
+        )
+        Spacer(Modifier.height(30.dp))
+
         TextField(
             value = name,
             onValueChange = { name = it },

@@ -25,8 +25,8 @@ fun LoginScreen(
     // Observe login state from the ViewModel
     val loginState by viewModel.loginState.collectAsState()
 
-    var identifier by remember { mutableStateOf("") } // User input for email/username
-    var password by remember { mutableStateOf("") } // User input for password
+    var identifier by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -34,6 +34,15 @@ fun LoginScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.Center
     ) {
+        Text(
+            text = "campvoiceus",
+            style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .align(CenterHorizontally)
+        )
+
+        Spacer(Modifier.height(30.dp))
+
         TextField(
             value = identifier,
             onValueChange = { identifier = it },
