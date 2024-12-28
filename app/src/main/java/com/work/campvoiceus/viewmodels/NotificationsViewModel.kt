@@ -27,6 +27,10 @@ class NotificationsViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    init {
+        fetchNotifications()
+    }
+
     fun fetchNotifications() {
         _isLoading.value = true
         _errorMessage.value = null
