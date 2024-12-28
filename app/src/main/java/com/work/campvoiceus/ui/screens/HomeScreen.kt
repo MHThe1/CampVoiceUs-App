@@ -44,7 +44,7 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(4.dp)
+            .padding(top = 8.dp, start = 3.dp, end = 3.dp)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
@@ -98,6 +98,7 @@ fun HomeScreen(
                             voterListViewModel = voterListViewModel,
                             fileDownloadViewModel = fileDownloadViewModel
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }

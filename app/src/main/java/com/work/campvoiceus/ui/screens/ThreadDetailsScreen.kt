@@ -56,7 +56,10 @@ fun ThreadDetailsScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(top = 8.dp, start = 3.dp, end = 3.dp)
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Main content
             if (isLoading) {
@@ -104,7 +107,7 @@ fun ThreadDetailsScreen(
                             },
                             voterListViewModel = voterListViewModel
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }

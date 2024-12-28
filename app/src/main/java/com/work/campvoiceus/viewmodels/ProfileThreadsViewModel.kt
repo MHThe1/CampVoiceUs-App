@@ -1,21 +1,26 @@
 package com.work.campvoiceus.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.utils.TokenManager
+import com.work.campvoiceus.utils.UserThreadCacheManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
 class ProfileThreadsViewModel(
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    context: Context
 ) : ViewModel() {
 
-    private val _userThreads = MutableStateFlow<List<ThreadModel>>(emptyList())
+    private val userThreadCacheManager = UserThreadCacheManager(context)
+
+    private val _userThreads = MutableStateFlow<List<ThreadModel>>(userThreadCacheManager.getUserThreads()) // Load user's threads from cache
     val userThreads: StateFlow<List<ThreadModel>> = _userThreads
 
     private val _isLoading = MutableStateFlow(false)
@@ -47,7 +52,7 @@ class ProfileThreadsViewModel(
             }
         }
     }
-    
+
     fun fetchUserThreads() {
         _isLoading.value = true
         _errorMessage.value = null
@@ -59,20 +64,22 @@ class ProfileThreadsViewModel(
                     val threadsResponse = threadService.getUserThreads(userId, "Bearer $token")
                     if (threadsResponse.isSuccessful) {
                         val userThreads = threadsResponse.body() ?: emptyList()
+
+                        val authorResponse = userService.getUserProfile("Bearer $token")
+                        val authorInfo = authorResponse.body()
+
                         val threadsWithAuthorInfo = userThreads.map { thread ->
-                            val authorResponse = userService.getUserById("Bearer $token", mapOf("id" to thread.authorId))
-                            if (authorResponse.isSuccessful) {
-                                val authorInfo = authorResponse.body()
-                                thread.copy(
-                                    authorName = authorInfo?.name ?: "Unknown",
-                                    authorUsername = authorInfo?.username ?: "unknown",
-                                    authorAvatarUrl = authorInfo?.avatarUrl
-                                )
-                            } else {
-                                thread
-                            }
+                            thread.copy(
+                                authorName = authorInfo?.name ?: "Unknown",
+                                authorUsername = authorInfo?.username ?: "unknown",
+                                authorAvatarUrl = authorInfo?.avatarUrl
+                            )
                         }
+
                         _userThreads.value = threadsWithAuthorInfo
+
+                        // Cache user's threads
+                        userThreadCacheManager.saveUserThreads(threadsWithAuthorInfo)
                     } else {
                         _errorMessage.value = "Failed to fetch threads: ${threadsResponse.message()}"
                     }
@@ -85,6 +92,10 @@ class ProfileThreadsViewModel(
                 _isLoading.value = false
             }
         }
+    }
+
+    fun clearCachedUserThreads() {
+        userThreadCacheManager.clearUserThreads()
     }
 
     fun handleVote(threadId: String, voteType: String) {

@@ -1,17 +1,14 @@
 package com.work.campvoiceus.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,11 +36,13 @@ fun ProfileScreen(
     val user by viewModel.user.collectAsState()
     val threads by threadsViewModel.userThreads.collectAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
+    val threadsLoading by threadsViewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val threadsErrorMessage by threadsViewModel.errorMessage.collectAsState()
     val currentUserId by threadsViewModel.currentUserId.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    var isFabLoading by remember { mutableStateOf(false) } // Tracks FAB loading state
 
     // Display the snackbar if there's an error message
     LaunchedEffect(threadsErrorMessage) {
@@ -58,14 +57,7 @@ fun ProfileScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (errorMessage != null) {
+        if (errorMessage != null) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -173,11 +165,35 @@ fun ProfileScreen(
                                     voterListViewModel = voterListViewModel,
                                     fileDownloadViewModel = fileDownloadViewModel
                                 )
+                                Spacer(Modifier.height(8.dp))
                             }
-
                         }
                     }
                 }
+            }
+        }
+
+        // Floating Action Button for manual refresh
+        FloatingActionButton(
+            onClick = {
+                isFabLoading = true // Set loading state
+                viewModel.fetchUserProfile() // Refresh profile
+                threadsViewModel.fetchUserThreads() // Refresh threads
+                isFabLoading = false // Reset loading state
+            },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            if (isFabLoading || isLoading || threadsLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh Profile")
             }
         }
 
@@ -188,4 +204,3 @@ fun ProfileScreen(
         )
     }
 }
-

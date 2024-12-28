@@ -170,8 +170,9 @@ fun AppNavHost(
 
                 // Profile Screen
                 composable("profile") {
-                    val viewModel = ProfileViewModel(tokenManager)
-                    val threadsViewModel = ProfileThreadsViewModel(tokenManager)
+                    val context = LocalContext.current
+                    val viewModel = ProfileViewModel(tokenManager, context)
+                    val threadsViewModel = ProfileThreadsViewModel(tokenManager, context)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val fileDownloadViewModel = FileDownloadViewModel()
                     ProfileScreen(
