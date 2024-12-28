@@ -18,6 +18,7 @@ import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
 import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
 import com.work.campvoiceus.viewmodels.CommentsViewModel
+import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 
 @Composable
@@ -25,6 +26,7 @@ fun AuthorProfileScreen(
     viewModel: AuthorProfileViewModel,
     threadsViewModel: AuthorThreadsViewModel,
     voterListViewModel: VoterListViewModel,
+    fileDownloadViewModel: FileDownloadViewModel,
     navigateToThread: (String) -> Unit,
     navigateToProfile: (String) -> Unit,
     navigateToTag: (String) -> Unit
@@ -147,7 +149,8 @@ fun AuthorProfileScreen(
                                     navigateToTag = { tag ->
                                         navigateToTag(tag) // Navigate to the tag threads
                                     },
-                                    voterListViewModel = voterListViewModel
+                                    voterListViewModel = voterListViewModel,
+                                    fileDownloadViewModel = fileDownloadViewModel
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                             }

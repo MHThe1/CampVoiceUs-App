@@ -13,8 +13,17 @@ data class ThreadModel(
     val downvotes: List<String>,
     val tags: List<String>,
     val createdAt: String,
+    val file: FileModel? = null,
     val __v: Int
 )
+
+data class FileModel(
+    val name: String,
+    val url: String,
+    val publicId: String,
+    val contentType: String? = null
+)
+
 
 data class CommentModel(
     val commentId: String,

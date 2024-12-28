@@ -2,6 +2,7 @@ package com.work.campvoiceus.ui.screens
 
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -35,14 +36,33 @@ fun CreateThreadScreen(
     val tags = remember { mutableStateListOf<String>() }
     var fileUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Get the context
+    val context = LocalContext.current
+
     // File picker launcher
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        fileUri = uri
-    }
+        if (uri != null) {
+            val contentResolver = context.contentResolver
+            val fileType = contentResolver.getType(uri) ?: ""
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            val fileSize = cursor?.use {
+                if (it.moveToFirst()) it.getLong(it.getColumnIndexOrThrow(OpenableColumns.SIZE)) else -1
+            } ?: -1
 
-    val context = LocalContext.current
+            // Allowed MIME types
+            val allowedTypes = listOf("image/", "video/", "application/zip")
+
+            // Check file type and size
+            if (allowedTypes.any { fileType.startsWith(it) } && fileSize <= 10 * 1024 * 1024) { // 10 MB
+                fileUri = uri
+            } else {
+                fileUri = null
+                Toast.makeText(context, "Invalid file. Only images, videos, or ZIP files under 10 MB are allowed.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
 
     if (isSuccess) {
         onThreadCreated()
@@ -137,7 +157,7 @@ fun CreateThreadScreen(
             val fileName = context.contentResolver.query(fileUri!!, null, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
                 else "unknown_file"
-            }
+            } ?: "unknown_file"
             Text(text = "File selected: $fileName")
         }
 
@@ -156,9 +176,6 @@ fun CreateThreadScreen(
         }
     }
 }
-
-
-
 
 @Composable
 fun Chip(text: String, onRemove: () -> Unit) {

@@ -1,13 +1,11 @@
 package com.work.campvoiceus.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.work.campvoiceus.models.ThreadModel
 import com.work.campvoiceus.network.RetrofitInstance.threadService
 import com.work.campvoiceus.network.RetrofitInstance.userService
 import com.work.campvoiceus.utils.TokenManager
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -81,31 +79,6 @@ class ThreadsViewModel(
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error fetching threads: ${e.localizedMessage}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-
-    fun fetchThreadsByTag(tag: String) {
-        _isLoading.value = true
-        _errorMessage.value = null
-        viewModelScope.launch {
-            Log.d("ThreadsViewModel", "Fetching threads for tag: $tag")
-            try {
-                val token = tokenManager.getToken()
-                Log.d("ThreadsViewModel", "Token: $token")
-                val threadsResponse = threadService.getThreadsByTag(tag, "Bearer $token")
-                Log.d("ThreadsViewModel", "Threads Response: $threadsResponse")
-                if (threadsResponse.isSuccessful) {
-                    val responseBody = threadsResponse.body()
-                    _threads.value = responseBody?.threads ?: emptyList()
-                } else {
-                    _errorMessage.value = "Failed to fetch threads for tag #$tag: ${threadsResponse.message()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Error fetching threads for tag #$tag: ${e.localizedMessage}"
             } finally {
                 _isLoading.value = false
             }

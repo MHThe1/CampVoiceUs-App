@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.work.campvoiceus.ui.components.ThreadCard
+import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.ThreadsByTagViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 
@@ -18,6 +19,7 @@ fun TagThreadsScreen(
     tag: String,
     viewModel: ThreadsByTagViewModel,
     voterListViewModel: VoterListViewModel,
+    fileDownloadViewModel: FileDownloadViewModel,
     navigateToThread: (String) -> Unit,
     navigateToProfile: (String) -> Unit,
     navigateToTag: (String) -> Unit
@@ -62,7 +64,8 @@ fun TagThreadsScreen(
                             navigateToTag = { tag ->
                                 navigateToTag(tag)
                             },
-                            voterListViewModel = voterListViewModel
+                            voterListViewModel = voterListViewModel,
+                            fileDownloadViewModel = fileDownloadViewModel
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }

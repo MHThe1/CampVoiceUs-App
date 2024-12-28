@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.work.campvoiceus.ui.components.ThreadCard
-import com.work.campvoiceus.viewmodels.CommentsViewModel
+import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 
@@ -21,6 +21,7 @@ import com.work.campvoiceus.viewmodels.VoterListViewModel
 fun HomeScreen(
     viewModel: ThreadsViewModel,
     voterListViewModel: VoterListViewModel,
+    fileDownloadViewModel: FileDownloadViewModel,
     navigateToProfile: (String) -> Unit,
     navigateToThread: (String) -> Unit,
     navigateToTag: (String) -> Unit,
@@ -99,7 +100,8 @@ fun HomeScreen(
                                     navigateToTag(tag)
                                 }
                             },
-                            voterListViewModel = voterListViewModel
+                            voterListViewModel = voterListViewModel,
+                            fileDownloadViewModel = fileDownloadViewModel
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                     }

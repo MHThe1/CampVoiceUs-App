@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import com.work.campvoiceus.ui.components.ThreadCard
+import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
@@ -29,6 +30,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     threadsViewModel: ProfileThreadsViewModel,
     voterListViewModel: VoterListViewModel,
+    fileDownloadViewModel: FileDownloadViewModel,
     navigateToThread: (String) -> Unit,
     navigateToTag: (String) -> Unit,
     onEditProfile: () -> Unit,
@@ -168,7 +170,8 @@ fun ProfileScreen(
                                             navigateToTag(tag)
                                         }
                                     },
-                                    voterListViewModel = voterListViewModel
+                                    voterListViewModel = voterListViewModel,
+                                    fileDownloadViewModel = fileDownloadViewModel
                                 )
                             }
 

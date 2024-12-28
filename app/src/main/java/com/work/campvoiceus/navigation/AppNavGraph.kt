@@ -38,12 +38,14 @@ import com.work.campvoiceus.viewmodels.AuthorProfileViewModel
 import com.work.campvoiceus.viewmodels.AuthorThreadsViewModel
 import com.work.campvoiceus.viewmodels.CommentsViewModel
 import com.work.campvoiceus.viewmodels.CreateThreadViewModel
+import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.LoginViewModel
 import com.work.campvoiceus.viewmodels.ThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileEditViewModel
 import com.work.campvoiceus.viewmodels.ProfileThreadsViewModel
 import com.work.campvoiceus.viewmodels.ProfileViewModel
 import com.work.campvoiceus.viewmodels.ThreadsByTagViewModel
+import kotlin.concurrent.thread
 
 @Composable
 fun AppNavHost(
@@ -143,6 +145,7 @@ fun AppNavHost(
                 composable("home") {
                     val viewModel = ThreadsViewModel(tokenManager)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    val fileDownloadViewModel = FileDownloadViewModel()
                     HomeScreen(
                         viewModel = viewModel,
                         voterListViewModel = voterListViewModel,
@@ -160,7 +163,8 @@ fun AppNavHost(
                             navController.navigate("tagThreads/$tag") {
                                 popUpTo("home") { saveState = true }
                             }
-                        }
+                        },
+                        fileDownloadViewModel = fileDownloadViewModel
                     )
                 }
 
@@ -170,10 +174,12 @@ fun AppNavHost(
                     val viewModel = ProfileViewModel(tokenManager)
                     val threadsViewModel = ProfileThreadsViewModel(tokenManager)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    val fileDownloadViewModel = FileDownloadViewModel()
                     ProfileScreen(
                         viewModel = viewModel,
                         threadsViewModel = threadsViewModel,
                         voterListViewModel = voterListViewModel,
+                        fileDownloadViewModel = fileDownloadViewModel,
                         onEditProfile = { navController.navigate("editProfile") },
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
@@ -222,6 +228,7 @@ fun AppNavHost(
                     val viewModel = AuthorProfileViewModel(tokenManager, userId)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val authorThreadsViewModel = AuthorThreadsViewModel(tokenManager, userId)
+                    val fileDownloadViewModel = FileDownloadViewModel()
 
                     AuthorProfileScreen(
                         viewModel = viewModel,
@@ -241,7 +248,8 @@ fun AppNavHost(
                             navController.navigate("tagThreads/$tag") {
                                 popUpTo("authorProfile/{userId}") { saveState = true }
                             }
-                        }
+                        },
+                        fileDownloadViewModel = fileDownloadViewModel
                     )
                 }
 
@@ -250,10 +258,12 @@ fun AppNavHost(
                     val threadId = backStackEntry.arguments?.getString("threadId") ?: return@composable
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
                     val commentsViewModel = CommentsViewModel(tokenManager, userService, threadService, threadId)
+                    val fileDownloadViewModel = FileDownloadViewModel()
 
                     ThreadDetailsScreen(
                         commentsViewModel = commentsViewModel,
                         voterListViewModel = voterListViewModel,
+                        fileDownloadViewModel = fileDownloadViewModel,
                         navigateToProfile = { authorId ->
                             navController.navigate("authorProfile/$authorId") {
                                 popUpTo("threadDetails/{threadId}") { inclusive = false }
@@ -278,11 +288,13 @@ fun AppNavHost(
                     val tag = backStackEntry.arguments?.getString("tag") ?: return@composable
                     val viewModel = ThreadsByTagViewModel(tokenManager, tag)
                     val voterListViewModel = VoterListViewModel(tokenManager, userService)
+                    val fileDownloadViewModel = FileDownloadViewModel()
 
                     TagThreadsScreen(
                         tag = tag,
                         viewModel = viewModel,
                         voterListViewModel = voterListViewModel,
+                        fileDownloadViewModel = fileDownloadViewModel,
                         navigateToThread = { threadId ->
                             navController.navigate("threadDetails/$threadId") {
                                 popUpTo("tagThreads/{tag}") { inclusive = true }

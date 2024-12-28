@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.work.campvoiceus.ui.components.CommentCard
 import com.work.campvoiceus.ui.components.ThreadCard
 import com.work.campvoiceus.viewmodels.CommentsViewModel
+import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 
 
@@ -24,6 +25,7 @@ import com.work.campvoiceus.viewmodels.VoterListViewModel
 fun ThreadDetailsScreen(
     commentsViewModel: CommentsViewModel,
     voterListViewModel: VoterListViewModel,
+    fileDownloadViewModel: FileDownloadViewModel,
     navigateToProfile: (String) -> Unit,
     navigateToThread: (String) -> Unit,
     navigateToTag: (String) -> Unit
@@ -86,7 +88,8 @@ fun ThreadDetailsScreen(
                             navigateToProfile = navigateToProfile,
                             navigateToThread = navigateToThread,
                             navigateToTag = navigateToTag,
-                            voterListViewModel = voterListViewModel
+                            voterListViewModel = voterListViewModel,
+                            fileDownloadViewModel = fileDownloadViewModel
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }

@@ -45,15 +45,23 @@ class CreateThreadViewModel(
 
                 val titleRequestBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
                 val contentRequestBody = content.toRequestBody("text/plain".toMediaTypeOrNull())
-                val tagsRequestBody = if (tags.isNotBlank()) {
-                    tags.split(",").map { it.trim() }
-                        .joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
-                } else {
-                    null
-                }
+                val tagsRequestBody = tags.takeIf { it.isNotBlank() }
+                    ?.toRequestBody("text/plain".toMediaTypeOrNull())
 
                 val contentResolver = context.contentResolver
                 val filePart = fileUri?.let { uri ->
+                    val fileType = contentResolver.getType(uri) ?: ""
+                    val cursor = contentResolver.query(uri, null, null, null, null)
+                    val fileSize = cursor?.use {
+                        if (it.moveToFirst()) it.getLong(it.getColumnIndexOrThrow(OpenableColumns.SIZE)) else -1
+                    } ?: -1
+
+                    // Validate file type and size
+                    if (!(listOf("image/", "video/", "application/zip").any { fileType.startsWith(it) } && fileSize <= 10 * 1024 * 1024)) {
+                        _errorMessage.value = "Invalid file. Only images, videos, or ZIP files under 10 MB are allowed."
+                        return@launch
+                    }
+
                     val inputStream = contentResolver.openInputStream(uri)
                     val tempFile = File.createTempFile("thread_file", null, context.cacheDir)
                     inputStream?.use { input ->
@@ -70,7 +78,7 @@ class CreateThreadViewModel(
                     MultipartBody.Part.createFormData(
                         name = "file",
                         filename = fileName,
-                        body = tempFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                        body = tempFile.asRequestBody(fileType.toMediaTypeOrNull())
                     )
                 }
 
@@ -95,5 +103,6 @@ class CreateThreadViewModel(
             }
         }
     }
+
 
 }

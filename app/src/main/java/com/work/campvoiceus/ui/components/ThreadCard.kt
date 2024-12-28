@@ -1,5 +1,7 @@
 package com.work.campvoiceus.ui.components
 
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,10 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.work.campvoiceus.models.ThreadModel
+import com.work.campvoiceus.viewmodels.FileDownloadViewModel
 import com.work.campvoiceus.viewmodels.Voter
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 import java.text.SimpleDateFormat
@@ -34,14 +38,17 @@ fun ThreadCard(
     thread: ThreadModel,
     currentUserId: String,
     onVote: (String, String) -> Unit,
-    navigateToThread: (String) -> Unit, // Navigate to ThreadDetailsScreen
+    navigateToThread: (String) -> Unit,
     navigateToProfile: (String) -> Unit,
     navigateToTag: (String) -> Unit,
     voterListViewModel: VoterListViewModel,
+    fileDownloadViewModel: FileDownloadViewModel
 ) {
     val (isVoterModalOpen, setVoterModalOpen) = remember { mutableStateOf(false) }
     val (voterType, setVoterType) = remember { mutableStateOf("") }
     val voters = remember { mutableStateOf<List<Voter>>(emptyList()) }
+
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier
@@ -129,6 +136,32 @@ fun ThreadCard(
                     }
                 }
             }
+
+            if (thread.file != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Attachment: ${thread.file.name}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(onClick = {
+                        fileDownloadViewModel.downloadThreadFile(
+                            fileUrl = thread.file.url,
+                            fileName = thread.file.name,
+                            context = context
+                        )
+                    }) {
+                        Text(text = "Download")
+                    }
+                }
+            }
+
+
 
 
             Row(
