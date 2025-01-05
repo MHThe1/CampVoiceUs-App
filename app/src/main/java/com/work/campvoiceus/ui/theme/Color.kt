@@ -13,4 +13,10 @@ val Pink40 = Color(0xFF7D5260)
 val LightGreen = Color(0xFFC8E6C9)
 val DarkGreen = Color(0xFF86D789)
 
+val LightGold = Color(0xFFFFD600)
+val LightBlue = Color(0xFFDBEAFE)
+val LightOrange = Color(0xFFFFEDD5)
+
+val onLightBlue = Color(0xFF1E40AF)
+val onLightOrange = Color(0xFFC2410C)
 val onLightGreen = Color(0xFF000000)
