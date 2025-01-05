@@ -1,11 +1,16 @@
 package com.work.campvoiceus.ui.components
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.ArrowCircleUp
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -15,9 +20,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
 import com.work.campvoiceus.models.CommentModel
+import com.work.campvoiceus.ui.theme.DarkGreen
+import com.work.campvoiceus.ui.theme.LightGreen
+import com.work.campvoiceus.ui.theme.onLightGreen
 import com.work.campvoiceus.viewmodels.Voter
 import com.work.campvoiceus.viewmodels.VoterListViewModel
 
@@ -25,6 +36,7 @@ import com.work.campvoiceus.viewmodels.VoterListViewModel
 fun CommentCard(
     comment: CommentModel,
     currentUserId: String,
+    threadType: String,
     onVote: (String, String) -> Unit,
     voterListViewModel: VoterListViewModel
 ) {
@@ -33,13 +45,13 @@ fun CommentCard(
     val voters = remember { mutableStateOf<List<Voter>>(emptyList()) }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = RectangleShape
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Header with avatar, name, and time
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -68,13 +80,140 @@ fun CommentCard(
                 TimeDisplay(comment.createdAt)
             }
 
+            // Expertise Section (Only for QnA)
+            if (threadType == "qna") {
+                val expertiseList = comment.expertise?.toList() // Create a local copy
+                val (isModalOpen, setModalOpen) = remember { mutableStateOf(false) }
+                val (selectedImageUrl, setSelectedImageUrl) = remember { mutableStateOf<String?>(null) }
+
+                if (!expertiseList.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .background(LightGreen, MaterialTheme.shapes.medium)
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Expertise Header with Icon
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Expertise Icon",
+                            tint = onLightGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Expertise:",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = onLightGreen,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Expertise Items
+                        expertiseList.forEachIndexed { index, exp ->
+                            Box(
+                                modifier = Modifier
+                                    .background(DarkGreen, MaterialTheme.shapes.small)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.small)
+                                    .clickable(enabled = !exp.credentialUrl.isNullOrEmpty()) {
+                                        exp.credentialUrl?.let {
+                                            setSelectedImageUrl(it) // Set the image URL
+                                            setModalOpen(true) // Open the modal
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = exp.name,
+                                    style = MaterialTheme.typography.bodySmall.copy(color = onLightGreen),
+                                    maxLines = 1
+                                )
+                            }
+
+                            // Add spacing between items
+                            if (index != expertiseList.lastIndex) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                        }
+                    }
+                } else {
+                    // Display "No known expertise" if the list is empty
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .background(MaterialTheme.colorScheme.errorContainer, MaterialTheme.shapes.medium)
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "No Expertise Icon",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "No known expertise",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+
+                // Modal/Popup for Image Preview
+                if (isModalOpen && selectedImageUrl != null) {
+                    Dialog(onDismissRequest = { setModalOpen(false) }) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                AsyncImage(
+                                    model = selectedImageUrl,
+                                    contentDescription = "Credential Image",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(300.dp)
+                                        .clip(MaterialTheme.shapes.medium),
+                                    contentScale = ContentScale.Fit
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(onClick = { setModalOpen(false) }) {
+                                    Text(text = "Close")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+
+
+
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Comment content
             Text(
                 text = comment.content,
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            // Voting Section
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

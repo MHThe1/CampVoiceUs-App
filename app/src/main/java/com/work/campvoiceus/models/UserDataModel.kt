@@ -12,6 +12,10 @@ data class LoginResponse(
 data class RegisterRequest(val name: String, val username: String, val email: String, val password: String)
 data class RegisterResponse(val message: String)
 
+data class Expertise(
+    val name: String,
+    val credentialUrl: String,
+)
 
 data class User(
     val _id: String,
@@ -19,7 +23,9 @@ data class User(
     val username: String,
     val email: String,
     val avatarUrl: String? = null,
-    val bio: String? = null
+    val bio: String? = null,
+    val interests: List<String>? = null,
+    val expertise: List<Expertise>? = null,
 )
 
 data class EditProfileData(

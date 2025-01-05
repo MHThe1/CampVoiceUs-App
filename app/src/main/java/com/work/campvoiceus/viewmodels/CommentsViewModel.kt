@@ -1,6 +1,5 @@
 package com.work.campvoiceus.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.work.campvoiceus.models.CommentModel
@@ -99,7 +98,7 @@ class CommentsViewModel(
                 thread.copy(
                     authorName = author?.name,
                     authorUsername = author?.username,
-                    authorAvatarUrl = author?.avatarUrl
+                    authorAvatarUrl = author?.avatarUrl,
                 )
             } else thread
         } catch (e: Exception) {
@@ -119,7 +118,8 @@ class CommentsViewModel(
                     comment.copy(
                         name = user?.name,
                         userName = user?.username,
-                        avatarUrl = user?.avatarUrl
+                        avatarUrl = user?.avatarUrl,
+                        expertise = user?.expertise
                     )
                 } else comment
             } catch (e: Exception) {

@@ -98,10 +98,14 @@ fun ThreadCard(
             Text(
                 text = thread.title,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.primary, // Highlight with primary color
+                color = if (thread.type == "qna") {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
                 modifier = Modifier
                     .padding(bottom = 8.dp)
-                    .clickable { navigateToThread(thread._id) } // Navigate to thread details
+                    .clickable { navigateToThread(thread._id) }
             )
 
             Text(

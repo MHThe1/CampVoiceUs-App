@@ -100,6 +100,7 @@ fun ThreadDetailsScreen(
                         CommentCard(
                             comment = comment,
                             currentUserId = currentUserId ?: "",
+                            threadType = thread?.type ?: "",
                             onVote = { commentId, voteType ->
                                 commentsViewModel.handleCommentVote(commentId, voteType)
                             },

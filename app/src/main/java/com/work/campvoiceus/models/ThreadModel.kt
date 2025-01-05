@@ -1,5 +1,6 @@
 package com.work.campvoiceus.models
 
+
 data class ThreadModel(
     val _id: String,
     val title: String,
@@ -14,6 +15,7 @@ data class ThreadModel(
     val tags: List<String>,
     val createdAt: String,
     val file: FileModel? = null,
+    val type: String? = "",
     val __v: Int
 )
 
@@ -34,7 +36,8 @@ data class CommentModel(
     val createdAt: String,
     var userName: String? = null,
     var avatarUrl: String? = null,
-    var name: String? = null
+    var name: String? = null,
+    var expertise: List<Expertise>? = null
 )
 
 
